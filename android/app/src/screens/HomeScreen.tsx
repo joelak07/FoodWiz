@@ -1,13 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Picker as SelectPicker } from '@react-native-picker/picker';
 
 export default function HomeScreen() {
-  const [mealTime, setMealTime] = useState('breakfast');
+  const [mealTime, setMealTime] = useState(getDefaultMealTime());
   const [items, setItems] = useState(['Chicken Fried Rice']);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMealTime(getDefaultMealTime());
+    }, 60000); // Update meal time every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  function getDefaultMealTime() {
+    const hour = new Date().getHours();
+    if (hour >= 4 && hour < 12) {
+      return 'breakfast';
+    } else if (hour >= 12 && hour < 15) {
+      return 'lunch';
+    } else if (hour >= 15 && hour < 19) {
+      return 'snacks';
+    } else {
+      return 'dinner';
+    }
+  }
+
   const addItem = () => {
-    setItems([...items, '']);
+    if (items.length < 6) {
+      setItems([...items, '']);
+    }
   };
 
   const updateItem = (index: number, value: string) => {
@@ -15,6 +38,10 @@ export default function HomeScreen() {
     newItems[index] = value;
     setItems(newItems);
   };
+
+  // const completeOrder = () => {
+  //   Alert.alert('Items Added', items.join(', '));
+  // };
 
   return (
     <View style={styles.main}>
@@ -45,9 +72,11 @@ export default function HomeScreen() {
             <SelectPicker.Item label="Porotta - 10" value="Porotta" />
           </SelectPicker>
         ))}
-        <TouchableOpacity onPress={addItem} style={styles.addButton}>
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+        {items.length < 6 && (
+          <TouchableOpacity onPress={addItem} style={styles.addButton}>
+            <Text style={styles.addButtonText}>+</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.completeButton}>
           <Text style={styles.completeButtonText}>Complete</Text>
         </TouchableOpacity>
@@ -69,6 +98,8 @@ const styles = StyleSheet.create({
   items: {
     padding: 20,
     alignItems: 'center',
+    backgroundColor: 'antiquewhite',
+    height: '100%',
   },
   title: {
     fontSize: 24,
@@ -102,10 +133,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
+    width: '90%',
+    position: 'absolute',
+    bottom: 150,
   },
   completeButtonText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 20,
+    textAlign: 'center',
   },
 });
