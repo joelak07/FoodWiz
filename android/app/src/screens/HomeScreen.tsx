@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Picker as SelectPicker } from '@react-native-picker/picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const [mealTime, setMealTime] = useState(getDefaultMealTime());
   const [items, setItems] = useState(['Chicken Fried Rice']);
+  const [balance, setBalance] = useState(100);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -39,13 +41,57 @@ export default function HomeScreen() {
     setItems(newItems);
   };
 
-  // const completeOrder = () => {
-  //   Alert.alert('Items Added', items.join(', '));
-  // };
+  const completeOrder = async (mealTime: string) => {
+    try {
+      const currentDate = new Date().toLocaleDateString('en-GB');
+      const storedData = await AsyncStorage.getItem(currentDate);
+      let data = storedData ? JSON.parse(storedData) : {};
+  
+      if (!data[mealTime]) {
+        data[mealTime] = [];
+      }
+  
+      data[mealTime] = [...data[mealTime], ...items];
+      
+      await AsyncStorage.setItem(currentDate, JSON.stringify(data));
+      console.log('Items saved successfully');
+    } catch (e) {
+      console.error('Failed to save items:', e);
+    }
+  };
+
+  const getItemsForCurrentDate = async () => {
+  try {
+    const currentDate = new Date().toLocaleDateString('en-GB');
+    const itemsJson = await AsyncStorage.getItem(currentDate);
+    if (itemsJson !== null) {
+      const items = JSON.parse(itemsJson);
+      console.log('Items for current date:', items);
+      return items;
+    } else {
+      console.log('No items found for current date');
+      return [];
+    }
+  } catch (e) {
+    console.error('Failed to get items:', e);
+    return [];
+  }
+};
+
+const deleteItemsForCurrentDate = async () => {
+  try {
+    const currentDate = new Date().toLocaleDateString('en-GB');
+    await AsyncStorage.removeItem(currentDate);
+    console.log('Items deleted successfully for current date');
+  } catch (e) {
+    console.error('Failed to delete items:', e);
+  }
+};
 
   return (
     <View style={styles.main}>
       <View style={styles.container}>
+        <Text style={styles.bal}>Balance: {balance}Rs</Text>
         <SelectPicker
           selectedValue={mealTime}
           onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
@@ -77,8 +123,8 @@ export default function HomeScreen() {
             <Text style={styles.addButtonText}>+</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.completeButton}>
-          <Text style={styles.completeButtonText}>Complete</Text>
+        <TouchableOpacity style={styles.completeButton} onPress={() => completeOrder(mealTime)}>
+          <Text style={styles.completeButtonText}>COMPLETE</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -91,6 +137,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'antiquewhite',
     width: '100%',
     height: '100%',
+  },
+  bal: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'right',
   },
   container: {
     padding: 20,
@@ -112,7 +163,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    marginTop: 20,
+    marginTop: 10,
   },
   addButton: {
     backgroundColor: 'blue',

@@ -11,7 +11,7 @@ export default function NavBar() {
 
 const styles = StyleSheet.create({
   navBar: {
-    backgroundColor: 'antiquewhite',
+    backgroundColor: '#C8BCAC',
     padding: 10,
     width: '100%',
   },
@@ -21,5 +21,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingLeft: 10,
     paddingTop: 10,
+    color: 'black',
   },
 });

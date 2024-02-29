@@ -15,7 +15,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>FoodPark Manager</Text>
+      <Text style={styles.title}>FoodWiz</Text>
       <View style={styles.botbox}>
       <TextInput
         style={styles.input}
@@ -46,10 +46,11 @@ const styles = StyleSheet.create({
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: 'antiquewhite',
 
   },
   title: {
-    fontSize: 24,
+    fontSize: 74,
     fontWeight: 'bold',
     marginBottom: 20,
   },
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
     borderColor: 'gray',
-    borderWidth: 1,
+    borderWidth: 3,
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 20,
@@ -68,6 +69,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'green',
     borderRadius: 5,
     padding: 10,
+    borderColor: 'green',
   },
   botbox:{
     width: '100%',
