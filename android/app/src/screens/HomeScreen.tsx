@@ -1,44 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Picker as SelectPicker } from '@react-native-picker/picker';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
-  const [mealTime, setMealTime] = useState(getDefaultMealTime());
-  const [items, setItems] = useState(['Chicken Fried Rice']);
+  const [mealTime, setMealTime] = useState('breakfast');
+  // const [mealTime, setMealTime] = useState(getDefaultMealTime());
+  const [items, setItems] = useState([]);
+  const [foods, setFoods] = useState(['Select']);
+  const [disp,setDisp]=useState([]);
   const [balance, setBalance] = useState(100);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMealTime(getDefaultMealTime());
-    }, 60000); // Update meal time every minute
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setMealTime(getDefaultMealTime());
+  //   }, 60000); // Update meal time every minute
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
-  function getDefaultMealTime() {
-    const hour = new Date().getHours();
-    if (hour >= 4 && hour < 12) {
-      return 'breakfast';
-    } else if (hour >= 12 && hour < 15) {
-      return 'lunch';
-    } else if (hour >= 15 && hour < 19) {
-      return 'snacks';
-    } else {
-      return 'dinner';
-    }
-  }
+  // function getDefaultMealTime() {
+  //   const hour = new Date().getHours();
+  //   if (hour >= 4 && hour < 12) {
+  //     return 'breakfast';
+  //   } else if (hour >= 12 && hour < 15) {
+  //     return 'lunch';
+  //   } else if (hour >= 15 && hour < 19) {
+  //     return 'snacks';
+  //   } else {
+  //     return 'dinner';
+  //   }
+  // }
 
-  const addItem = () => {
-    if (items.length < 6) {
-      setItems([...items, '']);
+  const addItem = (): void => {
+    if (foods.length < 6) {
+      setFoods([...foods, '']);
     }
   };
 
-  const updateItem = (index: number, value: string) => {
-    const newItems = [...items];
-    newItems[index] = value;
-    setItems(newItems);
+  const updateItem = (index: number, value: string): void => {
+    const newFoods: string[] = [...foods];
+    newFoods[index] = value;
+    setFoods(newFoods);
   };
 
   const completeOrder = async (mealTime: string) => {
@@ -46,13 +49,13 @@ export default function HomeScreen() {
       const currentDate = new Date().toLocaleDateString('en-GB');
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
-  
+
       if (!data[mealTime]) {
         data[mealTime] = [];
       }
-  
-      data[mealTime] = [...data[mealTime], ...items];
-      
+      console.log('Items to save:', foods);
+      data[mealTime] = [...data[mealTime], ...foods];
+
       await AsyncStorage.setItem(currentDate, JSON.stringify(data));
       console.log('Items saved successfully');
     } catch (e) {
@@ -61,32 +64,50 @@ export default function HomeScreen() {
   };
 
   const getItemsForCurrentDate = async () => {
-  try {
-    const currentDate = new Date().toLocaleDateString('en-GB');
-    const itemsJson = await AsyncStorage.getItem(currentDate);
-    if (itemsJson !== null) {
-      const items = JSON.parse(itemsJson);
-      console.log('Items for current date:', items);
-      return items;
-    } else {
-      console.log('No items found for current date');
+    try {
+      const currentDate = new Date().toLocaleDateString('en-GB');
+      const itemsJson = await AsyncStorage.getItem(currentDate);
+      if (itemsJson !== null) {
+        const disp = JSON.parse(itemsJson);
+        console.log('Items for current date:', disp);
+        return items;
+      } else {
+        console.log('No items found for current date');
+        return [];
+      }
+    } catch (e) {
+      console.error('Failed to get items:', e);
       return [];
     }
-  } catch (e) {
-    console.error('Failed to get items:', e);
-    return [];
-  }
-};
+  };
 
-const deleteItemsForCurrentDate = async () => {
-  try {
-    const currentDate = new Date().toLocaleDateString('en-GB');
-    await AsyncStorage.removeItem(currentDate);
-    console.log('Items deleted successfully for current date');
-  } catch (e) {
-    console.error('Failed to delete items:', e);
-  }
-};
+  const deleteItemsForCurrentDate = async () => {
+    try {
+      const currentDate = new Date().toLocaleDateString('en-GB');
+      await AsyncStorage.removeItem(currentDate);
+      console.log('Items deleted successfully for current date');
+    } catch (e) {
+      console.error('Failed to delete items:', e);
+    }
+  };
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const itemsString = await AsyncStorage.getItem(mealTime);
+        if (itemsString) {
+          const itemsArray = JSON.parse(itemsString);
+          setItems(itemsArray);
+        } else {
+          setItems([]);
+        }
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+    };
+
+    fetchItems();
+  }, [mealTime]);
 
   return (
     <View style={styles.main}>
@@ -95,8 +116,7 @@ const deleteItemsForCurrentDate = async () => {
         <SelectPicker
           selectedValue={mealTime}
           onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-          style={styles.picker}
-        >
+          style={styles.picker}>
           <SelectPicker.Item label="Breakfast" value="breakfast" />
           <SelectPicker.Item label="Lunch" value="lunch" />
           <SelectPicker.Item label="Snacks" value="snacks" />
@@ -105,25 +125,28 @@ const deleteItemsForCurrentDate = async () => {
       </View>
       <View style={styles.items}>
         <Text style={styles.title}>Add Items</Text>
-        {items.map((_, index) => (
+        {foods.map((_, index) => (
           <SelectPicker
             key={index}
-            selectedValue={items[index]}
-            onValueChange={(itemValue) => updateItem(index, itemValue)}
-            style={styles.picker}
-          >
-            <SelectPicker.Item label="Chicken Fried Rice - 60" value="Chicken Fried Rice" />
-            <SelectPicker.Item label="Chicken Biriyani - 100" value="Chicken Biriyani" />
-            <SelectPicker.Item label="Naan - 20" value="Naan" />
-            <SelectPicker.Item label="Porotta - 10" value="Porotta" />
+            selectedValue={foods[index]}
+            onValueChange={itemValue => updateItem(index, itemValue)}
+            style={styles.picker}>
+             <SelectPicker.Item label="Select Item" value="" enabled={false} />
+
+            {items.map((item, itemIndex) => (
+              <SelectPicker.Item key={itemIndex} label={item} value={item} />
+            ))}
           </SelectPicker>
         ))}
-        {items.length < 6 && (
+        {foods.length < 6 && (
           <TouchableOpacity onPress={addItem} style={styles.addButton}>
             <Text style={styles.addButtonText}>+</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.completeButton} onPress={() => completeOrder(mealTime)}>
+        <TouchableOpacity
+          style={styles.completeButton}
+          // onPress={() => deleteItemsForCurrentDate ()}>
+            onPress={() => completeOrder(mealTime)}>
           <Text style={styles.completeButtonText}>COMPLETE</Text>
         </TouchableOpacity>
       </View>
