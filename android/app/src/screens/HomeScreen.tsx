@@ -5,11 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const [mealTime, setMealTime] = useState('breakfast');
+  const [cost, setCost] = useState(0);
   // const [mealTime, setMealTime] = useState(getDefaultMealTime());
   const [items, setItems] = useState([]);
   const [foods, setFoods] = useState(['Select']);
-  const [disp,setDisp]=useState([]);
+  const [disp, setDisp] = useState([]);
   const [balance, setBalance] = useState(100);
+  const [prices, setPrices] = useState({});
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -60,6 +62,39 @@ export default function HomeScreen() {
       console.log('Items saved successfully');
     } catch (e) {
       console.error('Failed to save items:', e);
+    }
+
+    try {
+      const menuString = await AsyncStorage.getItem('menu');
+      if (!menuString) {
+        console.error('Menu not found in AsyncStorage');
+        return;
+      }
+
+      const menu = JSON.parse(menuString);
+
+      const prices = foods.map(food => {
+        const price = menu[food] || 0;
+        return {[food]: price};
+      });
+
+      const pricesObject = Object.assign({}, ...prices);
+      setPrices(pricesObject);
+      console.log(pricesObject);
+
+      let totalCost = 0;
+      Object.keys(pricesObject).forEach(food => {
+        const priceStr = pricesObject[food];
+        const price = parseInt(priceStr, 10);
+        if (!isNaN(price)) {
+          totalCost += price;
+        }
+      });
+      setCost(totalCost);
+      const curbal=balance;
+      setBalance(curbal-totalCost);
+    } catch (error) {
+      console.error('Error fetching prices:', error);
     }
   };
 
@@ -131,7 +166,7 @@ export default function HomeScreen() {
             selectedValue={foods[index]}
             onValueChange={itemValue => updateItem(index, itemValue)}
             style={styles.picker}>
-             <SelectPicker.Item label="Select Item" value="" enabled={false} />
+            <SelectPicker.Item label="Select Item" value="" enabled={false} />
 
             {items.map((item, itemIndex) => (
               <SelectPicker.Item key={itemIndex} label={item} value={item} />
@@ -146,7 +181,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.completeButton}
           // onPress={() => deleteItemsForCurrentDate ()}>
-            onPress={() => completeOrder(mealTime)}>
+          onPress={() => completeOrder(mealTime)}>
           <Text style={styles.completeButtonText}>COMPLETE</Text>
         </TouchableOpacity>
       </View>

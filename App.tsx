@@ -8,10 +8,10 @@ import Footer from './android/app/src/screens/Footer';
 const App = () => {
   return (
     <View style={styles.container}>
-      <NavBar/>
+      {/* <NavBar/>
       <HomeScreen/>
-      <Footer/>
-      {/* <LoginScreen/> */}
+      <Footer/> */}
+      <LoginScreen/>
     </View>
   );
 };
