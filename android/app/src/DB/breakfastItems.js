@@ -4,7 +4,7 @@ const breakfastItems = [
     'Pongal/KitchadiUpma',
     'Poori Masala',
     'Plain Dosa/Uthappam',
-    'Masala Dosa/ Uthappam/ Podi',
+    'Masala Dosa/ Uthappam/Podi',
     'Bread Toast',
     'Ghee Roast',
     'Masala Ghee Roast',

@@ -2,6 +2,9 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NavBar from './NavBar';
+import Footer from './Footer';
+import { useNavigation } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const [mealTime, setMealTime] = useState('breakfast');
@@ -12,6 +15,40 @@ export default function HomeScreen() {
   const [disp, setDisp] = useState([]);
   const [balance, setBalance] = useState(100);
   const [prices, setPrices] = useState({});
+
+  const navigation = useNavigation();
+
+
+  useEffect(() => {
+    const fetchLogin = async () => {
+      try {
+        const storedLogin = await AsyncStorage.getItem('login');
+        if (storedLogin !== "true") {
+          navigation.navigate('Login');
+        }
+      } catch (error) {
+        console.error('Error fetching login:', error);
+      }
+    };
+
+    fetchLogin();
+  }, []);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const storedBalance = await AsyncStorage.getItem('balance');
+        console.log('Stored balance:', storedBalance);
+        if (storedBalance !== null) {
+          setBalance(parseInt(storedBalance));
+        }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+      }
+    };
+
+    fetchBalance();
+  }, []);
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -49,6 +86,7 @@ export default function HomeScreen() {
   const completeOrder = async (mealTime: string) => {
     try {
       const currentDate = new Date().toLocaleDateString('en-GB');
+      console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
 
@@ -91,12 +129,23 @@ export default function HomeScreen() {
         }
       });
       setCost(totalCost);
-      const curbal=balance;
-      setBalance(curbal-totalCost);
+      const curbal = balance;
+      setBalance(curbal - totalCost);
+      updateBalance(curbal-totalCost);
     } catch (error) {
       console.error('Error fetching prices:', error);
     }
   };
+
+  const updateBalance = async (newBalance: number) => {
+    try {
+      await AsyncStorage.setItem('balance', newBalance.toString());
+      console.log('Balance updated successfully:', newBalance);
+      setBalance(newBalance);
+    } catch (error) {
+      console.error('Error updating balance:', error);
+    }
+  }
 
   const getItemsForCurrentDate = async () => {
     try {
@@ -145,51 +194,59 @@ export default function HomeScreen() {
   }, [mealTime]);
 
   return (
-    <View style={styles.main}>
-      <View style={styles.container}>
-        <Text style={styles.bal}>Balance: {balance}Rs</Text>
-        <SelectPicker
-          selectedValue={mealTime}
-          onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-          style={styles.picker}>
-          <SelectPicker.Item label="Breakfast" value="breakfast" />
-          <SelectPicker.Item label="Lunch" value="lunch" />
-          <SelectPicker.Item label="Snacks" value="snacks" />
-          <SelectPicker.Item label="Dinner" value="dinner" />
-        </SelectPicker>
-      </View>
-      <View style={styles.items}>
-        <Text style={styles.title}>Add Items</Text>
-        {foods.map((_, index) => (
+    <View style={styles.hs}>
+      <NavBar />
+      <View style={styles.main}>
+        <View style={styles.container}>
+          <Text style={styles.bal}>Balance: {balance}Rs</Text>
           <SelectPicker
-            key={index}
-            selectedValue={foods[index]}
-            onValueChange={itemValue => updateItem(index, itemValue)}
+            selectedValue={mealTime}
+            onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
             style={styles.picker}>
-            <SelectPicker.Item label="Select Item" value="" enabled={false} />
-
-            {items.map((item, itemIndex) => (
-              <SelectPicker.Item key={itemIndex} label={item} value={item} />
-            ))}
+            <SelectPicker.Item label="Breakfast" value="breakfast" />
+            <SelectPicker.Item label="Lunch" value="lunch" />
+            <SelectPicker.Item label="Snacks" value="snacks" />
+            <SelectPicker.Item label="Dinner" value="dinner" />
           </SelectPicker>
-        ))}
-        {foods.length < 6 && (
-          <TouchableOpacity onPress={addItem} style={styles.addButton}>
-            <Text style={styles.addButtonText}>+</Text>
+        </View>
+        <View style={styles.items}>
+          <Text style={styles.title}>Add Items</Text>
+          {foods.map((_, index) => (
+            <SelectPicker
+              key={index}
+              selectedValue={foods[index]}
+              onValueChange={itemValue => updateItem(index, itemValue)}
+              style={styles.picker}>
+              <SelectPicker.Item label="Select Item" value="" enabled={false} />
+
+              {items.map((item, itemIndex) => (
+                <SelectPicker.Item key={itemIndex} label={item} value={item} />
+              ))}
+            </SelectPicker>
+          ))}
+          {foods.length < 6 && (
+            <TouchableOpacity onPress={addItem} style={styles.addButton}>
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.completeButton}
+            // onPress={() => deleteItemsForCurrentDate ()}>
+            onPress={() => completeOrder(mealTime)}>
+            <Text style={styles.completeButtonText}>COMPLETE</Text>
           </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={styles.completeButton}
-          // onPress={() => deleteItemsForCurrentDate ()}>
-          onPress={() => completeOrder(mealTime)}>
-          <Text style={styles.completeButtonText}>COMPLETE</Text>
-        </TouchableOpacity>
+        </View>
       </View>
+      <Footer />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  hs: {
+    width: '100%',
+    height: '100%',
+  },
   main: {
     flex: 1,
     backgroundColor: 'antiquewhite',
@@ -200,6 +257,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'right',
+    marginBottom:10,
   },
   container: {
     padding: 20,

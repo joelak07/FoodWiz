@@ -2,17 +2,29 @@ import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import LoginScreen from './android/app/src/screens/LoginScreen';
 import HomeScreen from './android/app/src/screens/HomeScreen';
-import NavBar from './android/app/src/screens/NavBar';
-import Footer from './android/app/src/screens/Footer';
+import History from './android/app/src/screens/History';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+
+const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
-    <View style={styles.container}>
-      {/* <NavBar/>
-      <HomeScreen/>
-      <Footer/> */}
-      <LoginScreen/>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+      <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{headerShown: false}}/>
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen name="History" component={History} />
+        
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
 

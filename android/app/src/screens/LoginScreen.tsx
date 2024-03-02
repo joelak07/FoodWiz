@@ -1,12 +1,31 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
-  const [balance, setBalance] = useState(0);
   const [inputValue, setInputValue] = useState('');
   const [name, setName] = useState('');
+  const [loggedIn, setLoggedIn] = useState('');
+
+  useEffect(() => {
+    const fetchLogin = async () => {
+      try {
+        const storedLogin = await AsyncStorage.getItem('login');
+        console.log('Stored login:', storedLogin);
+        if (storedLogin === "true") {
+          navigation.navigate('Home');
+        }
+      } catch (error) {
+        console.error('Error fetching login:', error);
+      }
+    };
+
+    fetchLogin();
+  }, [loggedIn]);
+
+  const navigation = useNavigation();
+
 
   const handleInputChange = (text: string) => {
     setInputValue(text);
@@ -15,28 +34,56 @@ export default function LoginScreen() {
   const handleSetBalance = () => {
     const newBalance = parseInt(inputValue);
     if (!isNaN(newBalance)) {
-      setBalance(newBalance);
       setInputValue('');
-      console.log(newBalance);
+      storeBalance(newBalance);
+      console.log('Balance set to:', newBalance);
     }
   };
+
+  const storeBalance = async (newBalance:number) => {
+    try {
+      await AsyncStorage.setItem('balance', newBalance.toString());
+      console.log('Balance stored successfully! ' +newBalance.toString());
+    } catch (e) {
+      console.error('Failed to store balance:', e);
+    }
+  }
+
+  // const fetchBalance = async () => {
+  //   try {
+  //     const storedBalance = await AsyncStorage.getItem('balance');
+  //     if (storedBalance) {
+  //       console.log(parseInt(storedBalance));
+  //     }
+  //   } catch (e) {
+  //     console.error('Failed to fetch balance:', e);
+  //   }
+  // }
+
+  const handleLog=async()=>{
+    try {
+      await AsyncStorage.setItem('login', "true");
+    } catch (e) {
+      console.error('Failed to store balance:', e);
+    }
+  }
 
   const handleLogin = () => {
     if (!name.trim()) {
       Alert.alert('Error', 'Please enter your name');
       return;
     }
-
-    Alert.alert('Welcome', `Welcome, ${name}!`);
+    handleLog()
+    handleSetBalance(); // Set balance here
+    setLoggedIn(true);
+    navigation.navigate('Home');
+    
   };
 
   useEffect(() => {
-
-    const breakfastItems= require('../DB/breakfastItems');
-    console.log(breakfastItems);
-    
     const storeMenu = async () => {
       try {
+        const breakfastItems = require('../DB/breakfastItems');
         const jsonMenu = JSON.stringify(breakfastItems);
         await AsyncStorage.setItem('breakfast', jsonMenu);
         console.log('Breakfast items stored successfully!');
@@ -49,10 +96,9 @@ export default function LoginScreen() {
   }, []);
 
   useEffect(() => {
-    const menuItems = require('../DB/menuitems');
-
     const storeMenu = async () => {
       try {
+        const menuItems = require('../DB/menuItems');
         const jsonMenu = JSON.stringify(menuItems);
         await AsyncStorage.setItem('menu', jsonMenu);
         console.log('Menu items stored successfully!');
@@ -63,24 +109,6 @@ export default function LoginScreen() {
 
     storeMenu();
   }, []);
-
-  useEffect(() => {
-    const getMenu = async () => {
-      try {
-        const jsonMenu = await AsyncStorage.getItem('menu');
-        const menu = jsonMenu != null ? JSON.parse(jsonMenu) : null;
-        const chickenFriedRicePrice =
-          menu != null ? menu['Chicken Fried Rice/Noodles'] : null;
-        console.log('Price of Chicken Fried Rice:', chickenFriedRicePrice);
-      } catch (e) {
-        console.error('Failed to retrieve menu items:', e);
-      }
-    };
-
-    getMenu();
-  }, []);
-
- 
 
   return (
     <View style={styles.container}>
@@ -94,10 +122,11 @@ export default function LoginScreen() {
         />
         
         <TextInput
-        style={styles.input}
-        onChangeText={handleInputChange}
-        value={inputValue}
-        keyboardType='numeric'
+          style={styles.input}
+          onChangeText={handleInputChange}
+          placeholder="Enter your balance"
+          value={inputValue}
+          keyboardType='numeric'
         />
 
         <View style={styles.buttonContainer}>
