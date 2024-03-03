@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Keyboard,
   ViewComponent,
 } from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
@@ -31,6 +32,22 @@ export default function HomeScreen() {
 
   const navigation = useNavigation();
 
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(true);
+
+useEffect(() => {
+  const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+    setIsKeyboardOpen(true);
+  });
+  const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+    setIsKeyboardOpen(false);
+  });
+
+  return () => {
+    keyboardDidShowListener.remove();
+    keyboardDidHideListener.remove();
+  };
+}, []);
+
   useEffect(() => {
     const fetchLogin = async () => {
       try {
@@ -48,25 +65,29 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const fetchBalance = async () => {
-        try {
-            const storedBalance = await AsyncStorage.getItem('balance');
-            console.log('Stored balance:', storedBalance);
-            if (storedBalance !== null) {
-                const balanceValue = parseInt(storedBalance);
-                setBalance(balanceValue);
-                const currentDate = new Date();
-                const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-                const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
-                const todayBalanceValue = balanceValue / daysLeft;
-                setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
-            }
-        } catch (error) {
-            console.error('Error fetching balance:', error);
+      try {
+        const storedBalance = await AsyncStorage.getItem('balance');
+        console.log('Stored balance:', storedBalance);
+        if (storedBalance !== null) {
+          const balanceValue = parseInt(storedBalance);
+          setBalance(balanceValue);
+          const currentDate = new Date();
+          const lastDayOfMonth = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() + 1,
+            0,
+          ).getDate();
+          const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
+          const todayBalanceValue = balanceValue / daysLeft;
+          setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
         }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+      }
     };
 
     fetchBalance();
-}, []);
+  }, []);
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -111,7 +132,7 @@ export default function HomeScreen() {
     const newFoods: string[] = [...cusfoods];
     newFoods[index] = value;
     setCusFoods(newFoods);
-  }
+  };
 
   const completeOrder = async (mealTime: string) => {
     try {
@@ -208,9 +229,9 @@ export default function HomeScreen() {
 
   const [showTodayBalance, setShowTodayBalance] = useState(false);
 
-    const toggleBalance = () => {
-        setShowTodayBalance(!showTodayBalance);
-    };
+  const toggleBalance = () => {
+    setShowTodayBalance(!showTodayBalance);
+  };
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -231,84 +252,89 @@ export default function HomeScreen() {
   }, [mealTime]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-    <View style={styles.hs}>
-      <NavBar />
-      <View style={styles.main}>
-        <View style={styles.container}>
-        <TouchableOpacity onPress={toggleBalance}>
-            {showTodayBalance ? (
-                <Text style={styles.bal}>Today's Balance: {todaybalance}Rs</Text>
-            ) : (
+    <GestureHandlerRootView style={{flex: 1}}>
+      <View style={styles.hs}>
+        <NavBar />
+        <View style={styles.main}>
+          <View style={styles.container}>
+            <TouchableOpacity onPress={toggleBalance}>
+              {showTodayBalance ? (
+                <Text style={styles.bal}>
+                  Today's Balance: {todaybalance}Rs
+                </Text>
+              ) : (
                 <Text style={styles.bal}>Balance: {balance}Rs</Text>
-            )}
-        </TouchableOpacity>
-          <SelectPicker
-            selectedValue={mealTime}
-            onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-            style={styles.picker}>
-            <SelectPicker.Item label="Breakfast" value="breakfast" />
-            <SelectPicker.Item label="Lunch" value="lunch" />
-            <SelectPicker.Item label="Snacks" value="snacks" />
-            <SelectPicker.Item label="Dinner" value="dinner" />
-          </SelectPicker>
-        </View>
-        <View style={styles.items}>
-          <Text style={styles.title}>Add Items</Text>
-          {foods.map((_, index) => (
+              )}
+            </TouchableOpacity>
             <SelectPicker
-              key={index}
-              selectedValue={foods[index]}
-              onValueChange={itemValue => updateItem(index, itemValue)}
+              selectedValue={mealTime}
+              onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
               style={styles.picker}>
-
-              {items.map((item, itemIndex) => (
-                <SelectPicker.Item key={itemIndex} label={item} value={item} />
-              ))}
+              <SelectPicker.Item label="Breakfast" value="breakfast" />
+              <SelectPicker.Item label="Lunch" value="lunch" />
+              <SelectPicker.Item label="Snacks" value="snacks" />
+              <SelectPicker.Item label="Dinner" value="dinner" />
             </SelectPicker>
-          ))}
-          {cusfoods.map((_, index) => (
-            <View style={styles.cus}>
-            <TextInput
-              style={styles.cup}
-              placeholder="Enter Custom Item"
-              onChangeText={value => updateCusItem(index, value)}
-            />
-            <TextInput
-              style={styles.cupr}
-              placeholder="$"
-              onChangeText={value => updateCusItem(index, value)}
-            />
           </View>
-          
-          ))}
-          {foods.length + cusfoods.length < 5 && (
-            <View style={styles.adding}>
-              <TouchableOpacity onPress={addItem} style={styles.addButton}>
-                <Text style={styles.addButtonText}>+</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={addCusItem} style={styles.cusButton}>
-                <FontAwesomeIcon icon={faPen} color="white" />
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.items}>
+            <Text style={styles.title}>Add Items</Text>
+            {foods.map((_, index) => (
+              <SelectPicker
+                key={index}
+                selectedValue={foods[index]}
+                onValueChange={itemValue => updateItem(index, itemValue)}
+                style={styles.picker}>
+                {items.map((item, itemIndex) => (
+                  <SelectPicker.Item
+                    key={itemIndex}
+                    label={item}
+                    value={item}
+                  />
+                ))}
+              </SelectPicker>
+            ))}
+            {cusfoods.map((_, index) => (
+              <View key={index} style={styles.cus}>
+                <TextInput
+                  style={styles.cup}
+                  placeholder="Enter Custom Item"
+                  onChangeText={value => updateCusItem(index, value)}
+                />
+                <TextInput
+                  style={styles.cupr}
+                  placeholder="$"
+                  onChangeText={value => updateCusItem(index, value)}
+                />
+              </View>
+            ))}
+            {foods.length + cusfoods.length < 5 && (
+              <View style={styles.adding}>
+                <TouchableOpacity onPress={addItem} style={styles.addButton}>
+                  <Text style={styles.addButtonText}>+</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={addCusItem} style={styles.cusButton}>
+                  <FontAwesomeIcon icon={faPen} color="white" />
+                </TouchableOpacity>
+              </View>
+            )}
 
-          <TouchableOpacity
-            style={styles.completeButton}
-            // onPress={() => deleteItemsForCurrentDate ()}>
-            onPress={() => completeOrder(mealTime)}>
-            <Text style={styles.completeButtonText}>COMPLETE</Text>
-          </TouchableOpacity>
+            {!isKeyboardOpen && (
+              <TouchableOpacity
+                style={styles.completeButton}
+                onPress={() => completeOrder(mealTime)}>
+                <Text style={styles.completeButtonText}>COMPLETE</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
+        <Footer />
       </View>
-      <Footer />
-    </View>
-     </GestureHandlerRootView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  cus:{
+  cus: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -317,7 +343,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 10,
   },
-  cup:{
+  cup: {
     width: '78%',
     borderColor: 'gray',
     backgroundColor: '#fff',
@@ -325,7 +351,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
   },
-  cupr:{
+  cupr: {
     width: '20%',
     borderColor: 'gray',
     backgroundColor: '#fff',
