@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Keyboard, Platform } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
@@ -9,11 +9,36 @@ import { useNavigation } from '@react-navigation/native';
 
 export default function Footer() {
     const navigation = useNavigation();
+    const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+            () => {
+                setIsKeyboardOpen(true);
+            }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+            () => {
+                setIsKeyboardOpen(false);
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, []);
+
+    if (isKeyboardOpen) {
+        return null; // Return null to hide the footer when the keyboard is open
+    }
 
     const handleHistoryPress = () => {
         navigation.navigate('History');
     };
-    
+
     const handleAddPress = () => {
         navigation.navigate('Home');
     }
@@ -33,7 +58,7 @@ export default function Footer() {
             <TouchableOpacity style={styles.button}>
                 <FontAwesomeIcon icon={faChartSimple} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button}  onPress={handleSettingsPress}>
+            <TouchableOpacity style={styles.button} onPress={handleSettingsPress}>
                 <FontAwesomeIcon icon={faGear} />
             </TouchableOpacity>
         </View>

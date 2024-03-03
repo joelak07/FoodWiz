@@ -1,10 +1,21 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ViewComponent,
+} from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {faPen} from '@fortawesome/free-solid-svg-icons';
 import NavBar from './NavBar';
 import Footer from './Footer';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import {color} from 'native-base/lib/typescript/theme/styled-system';
+import {TextInput} from 'react-native-gesture-handler';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 export default function HomeScreen() {
   const [mealTime, setMealTime] = useState('breakfast');
@@ -12,18 +23,18 @@ export default function HomeScreen() {
   // const [mealTime, setMealTime] = useState(getDefaultMealTime());
   const [items, setItems] = useState([]);
   const [foods, setFoods] = useState(['Select']);
+  const [cusfoods, setCusFoods] = useState([]);
   const [disp, setDisp] = useState([]);
   const [balance, setBalance] = useState(100);
   const [prices, setPrices] = useState({});
 
   const navigation = useNavigation();
 
-
   useEffect(() => {
     const fetchLogin = async () => {
       try {
         const storedLogin = await AsyncStorage.getItem('login');
-        if (storedLogin !== "true") {
+        if (storedLogin !== 'true') {
           navigation.navigate('Login');
         }
       } catch (error) {
@@ -72,8 +83,14 @@ export default function HomeScreen() {
   // }
 
   const addItem = (): void => {
-    if (foods.length < 6) {
+    if (foods.length < 5 && cusfoods.length < 4) {
       setFoods([...foods, '']);
+    }
+  };
+
+  const addCusItem = (): void => {
+    if (foods.length < 5 && cusfoods.length < 4) {
+      setCusFoods([...cusfoods, '']);
     }
   };
 
@@ -82,6 +99,12 @@ export default function HomeScreen() {
     newFoods[index] = value;
     setFoods(newFoods);
   };
+
+  const updateCusItem = (index: number, value: string): void => {
+    const newFoods: string[] = [...cusfoods];
+    newFoods[index] = value;
+    setCusFoods(newFoods);
+  }
 
   const completeOrder = async (mealTime: string) => {
     try {
@@ -131,7 +154,7 @@ export default function HomeScreen() {
       setCost(totalCost);
       const curbal = balance;
       setBalance(curbal - totalCost);
-      updateBalance(curbal-totalCost);
+      updateBalance(curbal - totalCost);
     } catch (error) {
       console.error('Error fetching prices:', error);
     }
@@ -145,7 +168,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Error updating balance:', error);
     }
-  }
+  };
 
   const getItemsForCurrentDate = async () => {
     try {
@@ -194,6 +217,7 @@ export default function HomeScreen() {
   }, [mealTime]);
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <View style={styles.hs}>
       <NavBar />
       <View style={styles.main}>
@@ -217,18 +241,38 @@ export default function HomeScreen() {
               selectedValue={foods[index]}
               onValueChange={itemValue => updateItem(index, itemValue)}
               style={styles.picker}>
-              <SelectPicker.Item label="Select Item" value="" enabled={false} />
 
               {items.map((item, itemIndex) => (
                 <SelectPicker.Item key={itemIndex} label={item} value={item} />
               ))}
             </SelectPicker>
           ))}
-          {foods.length < 6 && (
-            <TouchableOpacity onPress={addItem} style={styles.addButton}>
-              <Text style={styles.addButtonText}>+</Text>
-            </TouchableOpacity>
+          {cusfoods.map((_, index) => (
+            <View style={styles.cus}>
+            <TextInput
+              style={styles.cup}
+              placeholder="Enter Custom Item"
+              onChangeText={value => updateCusItem(index, value)}
+            />
+            <TextInput
+              style={styles.cupr}
+              placeholder="$"
+              onChangeText={value => updateCusItem(index, value)}
+            />
+          </View>
+          
+          ))}
+          {foods.length + cusfoods.length < 5 && (
+            <View style={styles.adding}>
+              <TouchableOpacity onPress={addItem} style={styles.addButton}>
+                <Text style={styles.addButtonText}>+</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={addCusItem} style={styles.cusButton}>
+                <FontAwesomeIcon icon={faPen} color="white" />
+              </TouchableOpacity>
+            </View>
           )}
+
           <TouchableOpacity
             style={styles.completeButton}
             // onPress={() => deleteItemsForCurrentDate ()}>
@@ -239,10 +283,44 @@ export default function HomeScreen() {
       </View>
       <Footer />
     </View>
+     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  cus:{
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  cup:{
+    width: '78%',
+    borderColor: 'gray',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+  },
+  cupr:{
+    width: '20%',
+    borderColor: 'gray',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    marginLeft: 10,
+  },
+  adding: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignContent: 'center',
+    alignItems: 'center',
+  },
   hs: {
     width: '100%',
     height: '100%',
@@ -257,10 +335,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'right',
-    marginBottom:10,
+    marginBottom: 10,
   },
   container: {
     padding: 20,
+    paddingBottom: 0,
   },
   items: {
     padding: 20,
@@ -280,9 +359,20 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     padding: 10,
     marginTop: 10,
+    marginBottom: 10,
   },
   addButton: {
     backgroundColor: 'blue',
+    width: 100,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginRight: 10,
+  },
+  cusButton: {
+    backgroundColor: 'red',
     width: 100,
     height: 40,
     borderRadius: 10,

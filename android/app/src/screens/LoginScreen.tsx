@@ -75,7 +75,7 @@ export default function LoginScreen() {
     }
     handleLog()
     handleSetBalance(); // Set balance here
-    setLoggedIn(true);
+    setLoggedIn("true");
     navigation.navigate('Home');
     
   };
