@@ -25,7 +25,8 @@ export default function HomeScreen() {
   const [foods, setFoods] = useState(['Select']);
   const [cusfoods, setCusFoods] = useState([]);
   const [disp, setDisp] = useState([]);
-  const [balance, setBalance] = useState(100);
+  const [balance, setBalance] = useState(0);
+  const [todaybalance, setTodayBalance] = useState(0);
   const [prices, setPrices] = useState({});
 
   const navigation = useNavigation();
@@ -47,19 +48,25 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const fetchBalance = async () => {
-      try {
-        const storedBalance = await AsyncStorage.getItem('balance');
-        console.log('Stored balance:', storedBalance);
-        if (storedBalance !== null) {
-          setBalance(parseInt(storedBalance));
+        try {
+            const storedBalance = await AsyncStorage.getItem('balance');
+            console.log('Stored balance:', storedBalance);
+            if (storedBalance !== null) {
+                const balanceValue = parseInt(storedBalance);
+                setBalance(balanceValue);
+                const currentDate = new Date();
+                const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+                const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
+                const todayBalanceValue = balanceValue / daysLeft;
+                setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
+            }
+        } catch (error) {
+            console.error('Error fetching balance:', error);
         }
-      } catch (error) {
-        console.error('Error fetching balance:', error);
-      }
     };
 
     fetchBalance();
-  }, []);
+}, []);
 
   // useEffect(() => {
   //   const interval = setInterval(() => {
@@ -116,6 +123,7 @@ export default function HomeScreen() {
       if (!data[mealTime]) {
         data[mealTime] = [];
       }
+      console.log('cusom foods:', cusfoods);
       console.log('Items to save:', foods);
       data[mealTime] = [...data[mealTime], ...foods];
 
@@ -198,6 +206,12 @@ export default function HomeScreen() {
     }
   };
 
+  const [showTodayBalance, setShowTodayBalance] = useState(false);
+
+    const toggleBalance = () => {
+        setShowTodayBalance(!showTodayBalance);
+    };
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -222,7 +236,13 @@ export default function HomeScreen() {
       <NavBar />
       <View style={styles.main}>
         <View style={styles.container}>
-          <Text style={styles.bal}>Balance: {balance}Rs</Text>
+        <TouchableOpacity onPress={toggleBalance}>
+            {showTodayBalance ? (
+                <Text style={styles.bal}>Today's Balance: {todaybalance}Rs</Text>
+            ) : (
+                <Text style={styles.bal}>Balance: {balance}Rs</Text>
+            )}
+        </TouchableOpacity>
           <SelectPicker
             selectedValue={mealTime}
             onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}

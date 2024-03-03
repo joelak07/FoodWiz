@@ -5,6 +5,7 @@ import HomeScreen from './android/app/src/screens/HomeScreen';
 import History from './android/app/src/screens/History';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import OpeningScreen from './android/app/src/screens/OpeningScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,6 +13,10 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+      <Stack.Screen
+          name="Open"
+          component={OpeningScreen}
+          options={{headerShown: false}}/>
       <Stack.Screen
           name="Login"
           component={LoginScreen}

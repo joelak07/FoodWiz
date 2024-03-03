@@ -8,21 +8,21 @@ export default function LoginScreen() {
   const [name, setName] = useState('');
   const [loggedIn, setLoggedIn] = useState('');
 
-  useEffect(() => {
-    const fetchLogin = async () => {
-      try {
-        const storedLogin = await AsyncStorage.getItem('login');
-        console.log('Stored login:', storedLogin);
-        if (storedLogin === "true") {
-          navigation.navigate('Home');
-        }
-      } catch (error) {
-        console.error('Error fetching login:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchLogin = async () => {
+  //     try {
+  //       const storedLogin = await AsyncStorage.getItem('login');
+  //       console.log('Stored login:', storedLogin);
+  //       if (storedLogin === "true") {
+  //         navigation.navigate('Home');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching login:', error);
+  //     }
+  //   };
 
-    fetchLogin();
-  }, [loggedIn]);
+  //   fetchLogin();
+  // }, [loggedIn]);
 
   const navigation = useNavigation();
 
