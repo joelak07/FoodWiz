@@ -44,7 +44,7 @@ export default function Footer() {
     }
 
     const handleSettingsPress = () => {
-        navigation.navigate('Login');
+        navigation.navigate('Settings');
     }
 
     return (

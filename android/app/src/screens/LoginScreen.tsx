@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import lunchdinnerItems from '../DB/lunchdinnerItems';
 
 export default function LoginScreen() {
   const [inputValue, setInputValue] = useState('');
@@ -90,6 +91,25 @@ export default function LoginScreen() {
       } catch (e) {
         console.error('Failed to store breakfast items:', e);
       }
+
+      try {
+        const snacksItems = require('../DB/snacksItems');
+        const jsonMenu = JSON.stringify(snacksItems);
+        await AsyncStorage.setItem('snacks', jsonMenu);
+        console.log('Snacks items stored successfully!');
+      } catch (e) {
+        console.error('Failed to store snacks items:', e);
+      }
+
+      try {
+        const lunchdinnerItems = require('../DB/lunchdinnerItems');
+        const jsonMenu = JSON.stringify(lunchdinnerItems);
+        await AsyncStorage.setItem('lunch', jsonMenu);
+        await AsyncStorage.setItem('dinner', jsonMenu);
+        console.log('Lunch/Dinner items stored successfully!');
+      } catch (e) {
+        console.error('Failed to store Lunch/Dinner items:', e);
+      }
     };
 
     storeMenu();
@@ -156,12 +176,13 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     width: '100%',
-    borderColor: 'gray',
-    borderWidth: 3,
-    borderRadius: 5,
+    borderWidth: 2,
+    borderRadius: 10,
+    borderColor: '#ccc',
     paddingHorizontal: 10,
     marginBottom: 20,
     fontSize: 18,
+    backgroundColor: '#fff',
   },
   buttonContainer: {
     width: '100%',

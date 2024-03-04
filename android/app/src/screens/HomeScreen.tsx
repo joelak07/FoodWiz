@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect,useCallback} from 'react';
 import {
   View,
   Text,
@@ -17,11 +17,11 @@ import {useNavigation} from '@react-navigation/native';
 import {color} from 'native-base/lib/typescript/theme/styled-system';
 import {TextInput} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen() {
-  const [mealTime, setMealTime] = useState('breakfast');
   const [cost, setCost] = useState(0);
-  // const [mealTime, setMealTime] = useState(getDefaultMealTime());
+  const [mealTime, setMealTime] = useState(getDefaultMealTime());
   const [items, setItems] = useState([]);
   const [foods, setFoods] = useState(['Select']);
   const [cusfoods, setCusFoods] = useState([]);
@@ -34,7 +34,20 @@ export default function HomeScreen() {
 
   const navigation = useNavigation();
 
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(true);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const forceReload = () => {
+    setReloadKey((prevKey) => prevKey + 1);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      forceReload();
+      return () => {};
+    }, [])
+  );
 
   useEffect(() => {
     let newCupa = {};
@@ -82,6 +95,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const fetchBalance = async () => {
+      let flag = 0;
       try {
         const storedBalance = await AsyncStorage.getItem('balance');
         console.log('Stored balance:', storedBalance);
@@ -96,7 +110,27 @@ export default function HomeScreen() {
           ).getDate();
           const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
           const todayBalanceValue = balanceValue / daysLeft;
-          setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
+          console.log('Today Balance1:', todayBalanceValue.toFixed(2));
+          const currDate = new Date().toLocaleDateString('en-GB');
+          const checkday = await AsyncStorage.getItem('balday');
+          if (!checkday || parseInt(checkday) !== currentDate.getDate()) {
+            await AsyncStorage.setItem(
+              'balday',
+              currentDate.getDate().toString(),
+            );
+            await AsyncStorage.setItem('tbal', todayBalanceValue.toFixed(2));
+            const storedTodayBalance = await AsyncStorage.getItem('tbal');
+            setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
+            console.log('Today Balance2:', storedTodayBalance);
+          } else {
+            const storedTodayBalance = await AsyncStorage.getItem('tbal');
+            if (parseFloat(storedTodayBalance) > 0) {
+              setTodayBalance(parseFloat(storedTodayBalance));
+            } else {
+              setTodayBalance(0);
+            }
+            console.log('Today Balance3:', storedTodayBalance);
+          }
         }
       } catch (error) {
         console.error('Error fetching balance:', error);
@@ -106,26 +140,26 @@ export default function HomeScreen() {
     fetchBalance();
   }, []);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setMealTime(getDefaultMealTime());
-  //   }, 60000); // Update meal time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMealTime(getDefaultMealTime());
+    }, 60000); // Update meal time every minute
 
-  //   return () => clearInterval(interval);
-  // }, []);
+    return () => clearInterval(interval);
+  }, []);
 
-  // function getDefaultMealTime() {
-  //   const hour = new Date().getHours();
-  //   if (hour >= 4 && hour < 12) {
-  //     return 'breakfast';
-  //   } else if (hour >= 12 && hour < 15) {
-  //     return 'lunch';
-  //   } else if (hour >= 15 && hour < 19) {
-  //     return 'snacks';
-  //   } else {
-  //     return 'dinner';
-  //   }
-  // }
+  function getDefaultMealTime() {
+    const hour = new Date().getHours();
+    if (hour >= 4 && hour < 12) {
+      return 'breakfast';
+    } else if (hour >= 12 && hour < 15) {
+      return 'lunch';
+    } else if (hour >= 15 && hour < 19) {
+      return 'snacks';
+    } else {
+      return 'dinner';
+    }
+  }
 
   const addItem = (): void => {
     if (foods.length < 5 && cusfoods.length < 4) {
@@ -168,7 +202,7 @@ export default function HomeScreen() {
       if (!data[mealTime]) {
         data[mealTime] = [];
       }
-      console.log('Items to save:', foods);
+      console.log('Items to save:', foods, cusfoods);
       data[mealTime] = [...data[mealTime], ...foods, ...cusfoods];
 
       await AsyncStorage.setItem(currentDate, JSON.stringify(data));
@@ -185,19 +219,28 @@ export default function HomeScreen() {
       }
 
       const menu = JSON.parse(menuString);
+      const priceMap = new Map();
 
-      const prices = foods.map(food => {
+      foods.forEach(food => {
         const price = menu[food] || 0;
-        return {[food]: price};
+        if (priceMap.has(food)) {
+          priceMap.set(food, priceMap.get(food) + price);
+        } else {
+          priceMap.set(food, price);
+        }
       });
+
+      const prices = Array.from(priceMap, ([food, price]) => ({[food]: price}));
 
       const pricesObject = Object.assign({}, ...prices);
       const combinedObject = {...pricesObject, ...cupa};
+      console.log('Prices:', combinedObject);
       setPrices(combinedObject);
 
       let totalCost = 0;
-      Object.keys(pricesObject).forEach(food => {
-        const priceStr = pricesObject[food];
+      Object.keys(combinedObject).forEach(food => {
+        const priceStr = combinedObject[food];
+        console.log('Price:' + food + ' is', priceStr);
         const price = parseInt(priceStr, 10);
         if (!isNaN(price)) {
           totalCost += price;
@@ -206,18 +249,54 @@ export default function HomeScreen() {
       setCost(totalCost);
       const curbal = balance;
       setBalance(curbal - totalCost);
+      console.log('Today Balance:', todaybalance);
+      const storemon = todaybalance - totalCost;
+      if (storemon > 0) {
+        setTodayBalance(parseFloat(storemon.toFixed(2)));
+      } else {
+        setTodayBalance(0);
+      }
+      if (storemon > 0) {
+        await AsyncStorage.setItem('tbal', storemon.toFixed(2));
+      } else {
+        await AsyncStorage.setItem('tbal', '0');
+      }
       updateBalance(curbal - totalCost);
     } catch (error) {
       console.error('Error fetching prices:', error);
     }
 
+    try {
+      const currentDate = new Date().toLocaleDateString('en-GB');
+      console.log(currentDate);
+      const storedData = await AsyncStorage.getItem(currentDate);
+      let data = storedData ? JSON.parse(storedData) : {};
+
+      if (!data['Expense']) {
+        data['Expense'] = cost;
+      } else {
+        data['Expense'] = data['Expense'] + cost;
+      }
+      await AsyncStorage.setItem(currentDate, JSON.stringify(data));
+      console.log('Items saved successfully');
+    } catch (e) {
+      console.error('Failed to save items:', e);
+    }
+    setFoods([]);
+    setCusFoods([]);
+    setCost(0);
   };
 
   const updateBalance = async (newBalance: number) => {
     try {
-      await AsyncStorage.setItem('balance', newBalance.toString());
-      console.log('Balance updated successfully:', newBalance);
-      setBalance(newBalance);
+      if (newBalance > 0) {
+        await AsyncStorage.setItem('balance', newBalance.toString());
+        console.log('Balance updated successfully:', newBalance);
+        setBalance(newBalance);
+      } else {
+        await AsyncStorage.setItem('balance', '0');
+        setBalance(0);
+      }
     } catch (error) {
       console.error('Error updating balance:', error);
     }
