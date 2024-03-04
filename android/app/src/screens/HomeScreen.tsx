@@ -25,6 +25,8 @@ export default function HomeScreen() {
   const [items, setItems] = useState([]);
   const [foods, setFoods] = useState(['Select']);
   const [cusfoods, setCusFoods] = useState([]);
+  const [cusfoodsprices, setCusFoodsPrices] = useState([]);
+  const [cupa, setCupa] = useState([]);
   const [disp, setDisp] = useState([]);
   const [balance, setBalance] = useState(0);
   const [todaybalance, setTodayBalance] = useState(0);
@@ -34,19 +36,34 @@ export default function HomeScreen() {
 
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(true);
 
-useEffect(() => {
-  const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-    setIsKeyboardOpen(true);
-  });
-  const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-    setIsKeyboardOpen(false);
-  });
+  useEffect(() => {
+    let newCupa = {};
+    cusfoods.forEach((food, index) => {
+      newCupa[food] = cusfoodsprices[index];
+    });
+    setCupa(newCupa);
+    console.log('Cusom prices:', newCupa);
+  }, [cusfoods, cusfoodsprices]);
 
-  return () => {
-    keyboardDidShowListener.remove();
-    keyboardDidHideListener.remove();
-  };
-}, []);
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setIsKeyboardOpen(true);
+      },
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setIsKeyboardOpen(false);
+      },
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const fetchLogin = async () => {
@@ -119,6 +136,7 @@ useEffect(() => {
   const addCusItem = (): void => {
     if (foods.length < 5 && cusfoods.length < 4) {
       setCusFoods([...cusfoods, '']);
+      setCusFoodsPrices([...cusfoodsprices, '']);
     }
   };
 
@@ -134,6 +152,12 @@ useEffect(() => {
     setCusFoods(newFoods);
   };
 
+  const updateCusItemPrices = (index: number, value: string): void => {
+    const newPrices: number[] = [...cusfoodsprices];
+    newPrices[index] = parseFloat(value);
+    setCusFoodsPrices(newPrices);
+  };
+
   const completeOrder = async (mealTime: string) => {
     try {
       const currentDate = new Date().toLocaleDateString('en-GB');
@@ -144,9 +168,8 @@ useEffect(() => {
       if (!data[mealTime]) {
         data[mealTime] = [];
       }
-      console.log('cusom foods:', cusfoods);
       console.log('Items to save:', foods);
-      data[mealTime] = [...data[mealTime], ...foods];
+      data[mealTime] = [...data[mealTime], ...foods, ...cusfoods];
 
       await AsyncStorage.setItem(currentDate, JSON.stringify(data));
       console.log('Items saved successfully');
@@ -169,8 +192,8 @@ useEffect(() => {
       });
 
       const pricesObject = Object.assign({}, ...prices);
-      setPrices(pricesObject);
-      console.log(pricesObject);
+      const combinedObject = {...pricesObject, ...cupa};
+      setPrices(combinedObject);
 
       let totalCost = 0;
       Object.keys(pricesObject).forEach(food => {
@@ -187,6 +210,7 @@ useEffect(() => {
     } catch (error) {
       console.error('Error fetching prices:', error);
     }
+
   };
 
   const updateBalance = async (newBalance: number) => {
@@ -303,7 +327,7 @@ useEffect(() => {
                 <TextInput
                   style={styles.cupr}
                   placeholder="$"
-                  onChangeText={value => updateCusItem(index, value)}
+                  onChangeText={value => updateCusItemPrices(index, value)}
                 />
               </View>
             ))}
