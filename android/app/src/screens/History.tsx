@@ -8,7 +8,7 @@ import Order from './Order';
 
 export default function History() {
   const [orders, setOrders] = useState([]);
-  const [balance,setBalance]=useState(0);
+  const [balance, setBalance] = useState(0);
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -22,7 +22,7 @@ export default function History() {
         console.error('Failed to fetch balance:', error);
       }
     };
-  
+
     fetchBalance();
   }, []);
 
@@ -55,18 +55,17 @@ export default function History() {
         <View>
           <ScrollView>
             <View>
-            {Object.keys(orders).map(date => (
-  <Order
-    key={date}
-    date={date}
-    breakfast={orders[date].breakfast || []}  // Use default value if breakfast is undefined
-    lunch={orders[date].lunch || []}  // Use default value if lunch is undefined
-    snacks={orders[date].snacks || []}  // Use default value if snacks is undefined
-    dinner={orders[date].dinner || []}  // Use default value if dinner is undefined
-    totalExpense={orders[date].Expense}
-  />
-))}
-
+              {Object.keys(orders).map(date => (
+                <Order
+                  key={date}
+                  date={date}
+                  breakfast={orders[date].breakfast || []} // Use default value if breakfast is undefined
+                  lunch={orders[date].lunch || []} // Use default value if lunch is undefined
+                  snacks={orders[date].snacks || []} // Use default value if snacks is undefined
+                  dinner={orders[date].dinner || []} // Use default value if dinner is undefined
+                  totalExpense={orders[date].Expense}
+                />
+              ))}
             </View>
           </ScrollView>
         </View>
@@ -85,7 +84,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   balbox: {
-    marginTop:10,
+    marginTop: 10,
     height: 100,
     backgroundColor: 'white',
     borderRadius: 20,

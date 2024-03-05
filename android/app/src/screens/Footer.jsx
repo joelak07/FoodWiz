@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 5,
     },
     button: {
-        width: 95,
+        width: '23%',
         height: 60,
         backgroundColor: '#C8BCAC',
         justifyContent: 'center',

@@ -1,8 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import Footer from './Footer';
 import NavBar from './NavBar';
@@ -26,7 +25,6 @@ export default function SettingsScreen() {
   }, []);
 
   const handleLogout = async () => {
-    // Show confirmation dialog
     Alert.alert(
       'Logout',
       'Are you sure you want to log out? This will clear all data.',
@@ -89,7 +87,7 @@ export default function SettingsScreen() {
         <NavBar/>
       <View style={styles.container}>
         <View style={styles.namebox}>
-          <Text style={styles.userName}>Hello {name}</Text>
+          <Text style={styles.userName}>Hello {name}😊</Text>
         </View>
         <View style={styles.topBox}>
           <TextInput
@@ -98,6 +96,7 @@ export default function SettingsScreen() {
             keyboardType="numeric"
             onChangeText={(text) => setBalance(text)}
             value={balance}
+            placeholderTextColor="black"
           />
           <TouchableOpacity style={styles.Rbutton} onPress={handleResetBalance}>
             <Text style={styles.buttonText}>Reset Balance</Text>
@@ -117,6 +116,7 @@ const styles = StyleSheet.create({
     tot:{
         fontSize: 14,
         fontStyle: 'italic',
+        color: 'black',
     },
   container: {
     flex: 1,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10,
     height: 75,
-    width: '100%',
+    width: '95%',
     borderRadius: 10,
     borderColor: 'white',
     borderWidth: 1,
@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 25,
+    color: 'black',
   },
   Rbutton: {
     backgroundColor: 'green',

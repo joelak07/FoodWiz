@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Keyboard,
-  ViewComponent,
 } from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,7 +13,6 @@ import {faPen} from '@fortawesome/free-solid-svg-icons';
 import NavBar from './NavBar';
 import Footer from './Footer';
 import {useNavigation} from '@react-navigation/native';
-import {color} from 'native-base/lib/typescript/theme/styled-system';
 import {TextInput} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useFocusEffect} from '@react-navigation/native';
@@ -92,6 +90,25 @@ export default function HomeScreen() {
 
     fetchLogin();
   }, []);
+
+  const loadBalance = async () => {
+    try {
+      const storedBalance = await AsyncStorage.getItem('balance');
+      if (storedBalance !== null) {
+        setBalance(parseFloat(storedBalance));
+      }
+    } catch (e) {
+      console.error('Failed to load balance', e);
+    }
+  };
+
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      loadBalance();
+      
+    }, [])
+  );
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -361,26 +378,28 @@ export default function HomeScreen() {
       <View style={styles.hs}>
         <NavBar />
         <View style={styles.main}>
-          <View style={styles.container}>
-            <TouchableOpacity onPress={toggleBalance}>
-              {showTodayBalance ? (
-                <Text style={styles.bal}>
-                  Today's Balance: {todaybalance}Rs
-                </Text>
-              ) : (
-                <Text style={styles.bal}>Balance: {balance}Rs</Text>
-              )}
-            </TouchableOpacity>
-            <SelectPicker
-              selectedValue={mealTime}
-              onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-              style={styles.picker}>
-              <SelectPicker.Item label="Breakfast" value="breakfast" />
-              <SelectPicker.Item label="Lunch" value="lunch" />
-              <SelectPicker.Item label="Snacks" value="snacks" />
-              <SelectPicker.Item label="Dinner" value="dinner" />
-            </SelectPicker>
-          </View>
+          {!isKeyboardOpen && (
+            <View style={styles.container}>
+              <TouchableOpacity onPress={toggleBalance}>
+                {showTodayBalance ? (
+                  <Text style={styles.bal}>
+                    Today's Balance: {todaybalance}Rs
+                  </Text>
+                ) : (
+                  <Text style={styles.bal}>Balance: {balance}Rs</Text>
+                )}
+              </TouchableOpacity>
+              <SelectPicker
+                selectedValue={mealTime}
+                onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
+                style={styles.picker}>
+                <SelectPicker.Item label="Breakfast" value="breakfast" />
+                <SelectPicker.Item label="Lunch" value="lunch" />
+                <SelectPicker.Item label="Snacks" value="snacks" />
+                <SelectPicker.Item label="Dinner" value="dinner" />
+              </SelectPicker>
+            </View>
+          )}
           <View style={styles.items}>
             <Text style={styles.title}>Add Items</Text>
             {foods.map((_, index) => (
@@ -432,7 +451,7 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.completeButton}
                 onPress={() => completeOrder(mealTime)}>
-                <Text style={styles.completeButtonText}>COMPLETE</Text>
+                <Text style={styles.completeButtonText}>SUBMIT</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -492,6 +511,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
     marginBottom: 10,
+    color:'gray'
   },
   container: {
     padding: 20,
@@ -506,6 +526,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color:'gray',
   },
   picker: {
     width: '100%',
@@ -516,6 +537,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 10,
     marginBottom: 10,
+    color:'black'
   },
   addButton: {
     backgroundColor: 'blue',

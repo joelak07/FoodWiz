@@ -2,28 +2,13 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Button, StyleSheet, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import lunchdinnerItems from '../DB/lunchdinnerItems';
+
 
 export default function LoginScreen() {
   const [inputValue, setInputValue] = useState('');
   const [name, setName] = useState('');
   const [loggedIn, setLoggedIn] = useState('');
 
-  // useEffect(() => {
-  //   const fetchLogin = async () => {
-  //     try {
-  //       const storedLogin = await AsyncStorage.getItem('login');
-  //       console.log('Stored login:', storedLogin);
-  //       if (storedLogin === "true") {
-  //         navigation.navigate('Home');
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching login:', error);
-  //     }
-  //   };
-
-  //   fetchLogin();
-  // }, [loggedIn]);
 
   const navigation = useNavigation();
 
@@ -58,16 +43,7 @@ export default function LoginScreen() {
     }
   }
 
-  // const fetchBalance = async () => {
-  //   try {
-  //     const storedBalance = await AsyncStorage.getItem('balance');
-  //     if (storedBalance) {
-  //       console.log(parseInt(storedBalance));
-  //     }
-  //   } catch (e) {
-  //     console.error('Failed to fetch balance:', e);
-  //   }
-  // }
+
 
   const handleLog=async()=>{
     try {
@@ -148,6 +124,7 @@ export default function LoginScreen() {
           placeholder="Enter your name"
           onChangeText={setName}
           value={name}
+          placeholderTextColor="gray"
         />
         
         <TextInput
@@ -156,6 +133,7 @@ export default function LoginScreen() {
           placeholder="Enter your balance"
           value={inputValue}
           keyboardType='numeric'
+          placeholderTextColor="gray"
         />
 
         <View style={styles.buttonContainer}>
@@ -181,6 +159,7 @@ const styles = StyleSheet.create({
     fontSize: 74,
     fontWeight: 'bold',
     marginBottom: 20,
+    color:'gray'
   },
   input: {
     height: 50,
@@ -192,6 +171,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 18,
     backgroundColor: '#fff',
+    color:'black'
   },
   buttonContainer: {
     width: '100%',
