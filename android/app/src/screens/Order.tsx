@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 interface OrderProps {
@@ -16,11 +16,11 @@ const Order: React.FC<OrderProps> = (props) => {
   return (
     <View style={styles.container}>
       <Text style={styles.date}>Date:{date} </Text>
-      <Text style={styles.data}>Breakfast: {breakfast}</Text>
-      <Text style={styles.data}>Lunch: {lunch}</Text>
-      <Text style={styles.data}>Snacks: </Text>
-      <Text style={styles.data}>Dinner: </Text>
-      <Text style={styles.data}>Total Expense: {totalExpense}</Text>
+      <Text style={styles.data}>Breakfast: {breakfast.join(', ')}</Text>
+      <Text style={styles.data}>Lunch: {lunch.join(', ')}</Text>
+      <Text style={styles.data}>Snacks: {snacks.join(', ')}</Text>
+      <Text style={styles.data}>Dinner: {dinner.join(', ')}</Text>
+      <Text style={styles.dats}>Total Expense: {totalExpense}Rs</Text>
     </View>
   );
 }
@@ -37,9 +37,14 @@ const styles = StyleSheet.create({
   date:{
     fontSize:20,
     marginBottom:5,
+    fontWeight:'bold'
   },
   data:{
     fontSize:15,
+  },
+  dats:{
+    fontSize:18,
+    marginTop:5,
   }
 });
 

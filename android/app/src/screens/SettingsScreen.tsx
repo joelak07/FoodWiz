@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,6 +10,20 @@ import NavBar from './NavBar';
 export default function SettingsScreen() {
   const [balance, setBalance] = useState('');
   const navigation = useNavigation();
+  const [name,setName]=useState('');
+
+  useEffect(() => {
+    const fetchName = async () => {
+      try {
+        const nameo = await AsyncStorage.getItem('name');
+        setName(nameo);
+      } catch (error) {
+        console.error('Failed to fetch name:', error);
+      }
+    };
+  
+    fetchName();
+  }, []);
 
   const handleLogout = async () => {
     // Show confirmation dialog
@@ -75,7 +89,7 @@ export default function SettingsScreen() {
         <NavBar/>
       <View style={styles.container}>
         <View style={styles.namebox}>
-          <Text style={styles.userName}>Hello Username</Text>
+          <Text style={styles.userName}>Hello {name}</Text>
         </View>
         <View style={styles.topBox}>
           <TextInput

@@ -8,6 +8,23 @@ import Order from './Order';
 
 export default function History() {
   const [orders, setOrders] = useState([]);
+  const [balance,setBalance]=useState(0);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const balanceString = await AsyncStorage.getItem('balance');
+        if (balanceString !== null) {
+          const balance = parseFloat(balanceString);
+          setBalance(balance);
+        }
+      } catch (error) {
+        console.error('Failed to fetch balance:', error);
+      }
+    };
+  
+    fetchBalance();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,23 +49,24 @@ export default function History() {
       <NavBar />
       <View style={styles.container}>
         <View style={styles.balbox}>
-          <Text style={styles.titbal}>Your Balance: Balance</Text>
+          <Text style={styles.titbal}>Your Balance: {balance}</Text>
         </View>
         <Text style={styles.title}>Your Orders</Text>
         <View>
           <ScrollView>
             <View>
-              {Object.keys(orders).map(date => (
-                <Order
-                  key={date}
-                  date={date}
-                  breakfast={orders[date].breakfast}
-                  lunch={orders[date].lunch}
-                  snacks={orders[date].snacks}
-                  dinner={orders[date].dinner}
-                  totalExpense={orders[date].Expense}
-                />
-              ))}              
+            {Object.keys(orders).map(date => (
+  <Order
+    key={date}
+    date={date}
+    breakfast={orders[date].breakfast || []}  // Use default value if breakfast is undefined
+    lunch={orders[date].lunch || []}  // Use default value if lunch is undefined
+    snacks={orders[date].snacks || []}  // Use default value if snacks is undefined
+    dinner={orders[date].dinner || []}  // Use default value if dinner is undefined
+    totalExpense={orders[date].Expense}
+  />
+))}
+
             </View>
           </ScrollView>
         </View>
@@ -67,6 +85,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   balbox: {
+    marginTop:10,
     height: 100,
     backgroundColor: 'white',
     borderRadius: 20,

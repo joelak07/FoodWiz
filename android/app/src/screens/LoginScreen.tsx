@@ -32,6 +32,14 @@ export default function LoginScreen() {
     setInputValue(text);
   };
 
+  const handleSetName = async()=>{
+    try {
+      await AsyncStorage.setItem('name', name);
+    } catch (e) {
+      console.error('Failed to store balance:', e);
+    }
+  }
+
   const handleSetBalance = () => {
     const newBalance = parseInt(inputValue);
     if (!isNaN(newBalance)) {
@@ -75,6 +83,7 @@ export default function LoginScreen() {
       return;
     }
     handleLog()
+    handleSetName();
     handleSetBalance(); // Set balance here
     setLoggedIn("true");
     navigation.navigate('Home');

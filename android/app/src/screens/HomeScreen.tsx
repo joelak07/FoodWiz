@@ -1,4 +1,4 @@
-import React, {useState, useEffect,useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import {useNavigation} from '@react-navigation/native';
 import {color} from 'native-base/lib/typescript/theme/styled-system';
 import {TextInput} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 
 export default function HomeScreen() {
   const [cost, setCost] = useState(0);
@@ -39,14 +39,14 @@ export default function HomeScreen() {
   const [reloadKey, setReloadKey] = useState(0);
 
   const forceReload = () => {
-    setReloadKey((prevKey) => prevKey + 1);
+    setReloadKey(prevKey => prevKey + 1);
   };
 
   useFocusEffect(
     useCallback(() => {
       forceReload();
       return () => {};
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -175,9 +175,11 @@ export default function HomeScreen() {
   };
 
   const updateItem = (index: number, value: string): void => {
-    const newFoods: string[] = [...foods];
-    newFoods[index] = value;
-    setFoods(newFoods);
+    if (value !== '') {
+      const newFoods: string[] = [...foods];
+      newFoods[index] = value;
+      setFoods(newFoods);
+    }
   };
 
   const updateCusItem = (index: number, value: string): void => {
@@ -210,7 +212,7 @@ export default function HomeScreen() {
     } catch (e) {
       console.error('Failed to save items:', e);
     }
-
+    let totalCost = 0;
     try {
       const menuString = await AsyncStorage.getItem('menu');
       if (!menuString) {
@@ -237,7 +239,6 @@ export default function HomeScreen() {
       console.log('Prices:', combinedObject);
       setPrices(combinedObject);
 
-      let totalCost = 0;
       Object.keys(combinedObject).forEach(food => {
         const priceStr = combinedObject[food];
         console.log('Price:' + food + ' is', priceStr);
@@ -247,6 +248,7 @@ export default function HomeScreen() {
         }
       });
       setCost(totalCost);
+      console.log('cost1 ' + cost);
       const curbal = balance;
       setBalance(curbal - totalCost);
       console.log('Today Balance:', todaybalance);
@@ -271,11 +273,11 @@ export default function HomeScreen() {
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
-
+      console.log('Cost ' + totalCost);
       if (!data['Expense']) {
-        data['Expense'] = cost;
+        data['Expense'] = totalCost;
       } else {
-        data['Expense'] = data['Expense'] + cost;
+        data['Expense'] = data['Expense'] + totalCost;
       }
       await AsyncStorage.setItem(currentDate, JSON.stringify(data));
       console.log('Items saved successfully');
@@ -387,6 +389,11 @@ export default function HomeScreen() {
                 selectedValue={foods[index]}
                 onValueChange={itemValue => updateItem(index, itemValue)}
                 style={styles.picker}>
+                <SelectPicker.Item
+                  key="disabled-option"
+                  label="Select Item"
+                  value=""
+                />
                 {items.map((item, itemIndex) => (
                   <SelectPicker.Item
                     key={itemIndex}
