@@ -7,6 +7,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import OpeningScreen from './android/app/src/screens/OpeningScreen';
 import SettingsScreen from './android/app/src/screens/SettingsScreen';
+import StatsScreen from './android/app/src/screens/StatsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,10 +28,15 @@ const App = () => {
           component={HomeScreen}
           options={{headerShown: false}}
         />
-        <Stack.Screen name="History" component={History} />
+        <Stack.Screen name="History" component={History} options={{headerShown: false}} />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Stats"
+          component={StatsScreen}
           options={{headerShown: false}}
         />
         

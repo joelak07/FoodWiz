@@ -47,6 +47,12 @@ export default function Footer() {
         navigation.navigate('Settings');
     }
 
+    
+    const handleStatsPress = () => {
+        navigation.navigate('Stats');
+    }
+
+
     return (
         <View style={styles.footer}>
             <TouchableOpacity style={styles.button} onPress={handleAddPress}>
@@ -55,7 +61,7 @@ export default function Footer() {
             <TouchableOpacity style={styles.button} onPress={handleHistoryPress}>
                 <FontAwesomeIcon icon={faClockRotateLeft} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={handleStatsPress}>
                 <FontAwesomeIcon icon={faChartSimple} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={handleSettingsPress}>
