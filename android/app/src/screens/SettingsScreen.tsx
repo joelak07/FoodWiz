@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Keyboard, KeyboardAvoidingView } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import Footer from './Footer';
@@ -9,7 +9,8 @@ import NavBar from './NavBar';
 export default function SettingsScreen() {
   const [balance, setBalance] = useState('');
   const navigation = useNavigation();
-  const [name,setName]=useState('');
+  const [name, setName] = useState('');
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const fetchName = async () => {
@@ -20,8 +21,24 @@ export default function SettingsScreen() {
         console.error('Failed to fetch name:', error);
       }
     };
-  
+
     fetchName();
+  }, []);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => setIsKeyboardOpen(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setIsKeyboardOpen(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -48,10 +65,8 @@ export default function SettingsScreen() {
       { cancelable: true }
     );
   };
-  
- 
 
-  const handleResetBalance = async() => {
+  const handleResetBalance = async () => {
     if (balance.trim() === '') {
       Alert.alert('Invalid Input', 'Please enter a valid number.');
       return;
@@ -64,60 +79,69 @@ export default function SettingsScreen() {
     }
 
     try {
-        if (newBalance > 0) {
-          await AsyncStorage.setItem('balance', newBalance.toString());
-          console.log('Balance updated successfully:', newBalance);
-        } else {
-          await AsyncStorage.setItem('balance', '0');
-          setBalance('');
-        }
-      } catch (error) {
-        console.error('Error updating balance:', error);
+      if (newBalance > 0) {
+        await AsyncStorage.setItem('balance', newBalance.toString());
+        console.log('Balance updated successfully:', newBalance);
+      } else {
+        await AsyncStorage.setItem('balance', '0');
+        setBalance('');
       }
-      Alert.alert(
-        'Balance Reset',
-        `New balance set to ${newBalance}\n\nKindly, close the app and open it again to see the changes`
-      );
-      
+    } catch (error) {
+      console.error('Error updating balance:', error);
+    }
+    Alert.alert(
+      'Balance Reset',
+      `New balance set to ${newBalance}\n\nKindly, close the app and open it again to see the changes`
+    );
+
     setBalance('');
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-        <NavBar/>
-      <View style={styles.container}>
-        <View style={styles.namebox}>
-          <Text style={styles.userName}>Hello {name}😊</Text>
+      <NavBar />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.container}>
+          {!isKeyboardOpen && (
+            <View style={styles.namebox}>
+              <Text style={styles.userName}>Hello {name}😊</Text>
+            </View>
+          )}
+          <View style={styles.topBox}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter new balance"
+              keyboardType="numeric"
+              onChangeText={(text) => setBalance(text)}
+              value={balance}
+              placeholderTextColor="black"
+            />
+            <TouchableOpacity style={styles.Rbutton} onPress={handleResetBalance}>
+              <Text style={styles.buttonText}>Reset Balance</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.Lbutton}>
+              <Text style={styles.buttonText} onPress={handleLogout}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.tot}>Mail me at joelabrahamkoshy@gmail.com for any feedback</Text>
         </View>
-        <View style={styles.topBox}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter new balance"
-            keyboardType="numeric"
-            onChangeText={(text) => setBalance(text)}
-            value={balance}
-            placeholderTextColor="black"
-          />
-          <TouchableOpacity style={styles.Rbutton} onPress={handleResetBalance}>
-            <Text style={styles.buttonText}>Reset Balance</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.Lbutton}>
-            <Text style={styles.buttonText} onPress={handleLogout}>Log Out</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.tot}>Mail me at joelabrahamkoshy@gmail.com for any feedback</Text>
-      </View>
-      <Footer/>
+      </KeyboardAvoidingView>
+      <Footer />
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-    tot:{
-        fontSize: 14,
-        fontStyle: 'italic',
-        color: 'black',
-    },
+  tot: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: 'black',
+    width: '90%',
+    textAlign: 'center',
+  },
   container: {
     flex: 1,
     padding: 10,
@@ -180,8 +204,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 10,
     paddingHorizontal: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     width: '100%',
-    fontSize: 24,
+    fontSize: 20,
+    color: 'black',
+    borderWidth:1,
+    borderColor:'#ccc'
   },
 });

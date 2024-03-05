@@ -213,8 +213,7 @@ export default function HomeScreen() {
 
   const completeOrder = async (mealTime: string) => {
     try {
-      // const currentDate = new Date().toLocaleDateString('en-GB');
-      const currentDate='01/03/2024'
+      const currentDate = new Date().toLocaleDateString('en-GB');
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
@@ -287,7 +286,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const currentDate='01/03/2024'
+      const currentDate = new Date().toLocaleDateString('en-GB');
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
