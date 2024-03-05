@@ -15,7 +15,7 @@ const Order: React.FC<OrderProps> = (props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.date}>Date:{date} </Text>
+      <Text style={styles.date}>{date} </Text>
       <Text style={styles.data}>Breakfast: {breakfast.join(', ')}</Text>
       <Text style={styles.data}>Lunch: {lunch.join(', ')}</Text>
       <Text style={styles.data}>Snacks: {snacks.join(', ')}</Text>
@@ -37,14 +37,17 @@ const styles = StyleSheet.create({
   date:{
     fontSize:20,
     marginBottom:5,
-    fontWeight:'bold'
+    fontWeight:'bold',
+    color:'black',
   },
   data:{
     fontSize:15,
+    color:'gray',
   },
   dats:{
     fontSize:18,
     marginTop:5,
+    color:'gray',
   }
 });
 

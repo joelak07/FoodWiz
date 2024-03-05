@@ -30,14 +30,21 @@ export default function History() {
     const fetchData = async () => {
       let currentDate = new Date();
       let ordersData = {};
-      while (true) {
+      let firstDayOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1,
+      );
+
+      while (currentDate.getTime() >= firstDayOfMonth.getTime()) {
         let dateKey = currentDate.toLocaleDateString('en-GB');
         let ordersForDate = await AsyncStorage.getItem(dateKey);
-        if (!ordersForDate) break;
-        ordersData[dateKey] = JSON.parse(ordersForDate);
-        currentDate.setDate(currentDate.getDate() - 1);
-        console.log(ordersData);
+        if (ordersForDate) {
+          ordersData[dateKey] = JSON.parse(ordersForDate);
+        }
+        currentDate.setDate(currentDate.getDate() - 1); // Move currentDate to the previous day
       }
+
       setOrders(ordersData);
     };
 
@@ -52,8 +59,8 @@ export default function History() {
           <Text style={styles.titbal}>Your Balance: {balance}</Text>
         </View>
         <Text style={styles.title}>Your Orders</Text>
-        <View>
-          <ScrollView>
+        <ScrollView>
+          <View>
             <View>
               {Object.keys(orders).map(date => (
                 <Order
@@ -67,8 +74,8 @@ export default function History() {
                 />
               ))}
             </View>
-          </ScrollView>
-        </View>
+          </View>
+        </ScrollView>
       </View>
       <Footer />
     </SafeAreaView>

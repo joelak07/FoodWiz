@@ -53,6 +53,16 @@ export default function LoginScreen() {
     }
   }
 
+  const handleSetDate = async()=>{
+    try {
+      const date = new Date().toLocaleDateString('en-GB');;
+      await AsyncStorage.setItem('stdate', date);
+      console.log('Date stored successfully! ' +date);
+    } catch (e) {
+      console.error('Failed to store balance:', e);
+    }
+  }
+
   const handleLogin = () => {
     if (!name.trim()) {
       Alert.alert('Error', 'Please enter your name');
@@ -60,6 +70,7 @@ export default function LoginScreen() {
     }
     handleLog()
     handleSetName();
+    handleSetDate();
     handleSetBalance(); // Set balance here
     setLoggedIn("true");
     navigation.navigate('Home');
@@ -159,7 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 74,
     fontWeight: 'bold',
     marginBottom: 20,
-    color:'gray'
+    color:'#333'
   },
   input: {
     height: 50,

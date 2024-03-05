@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 export default function OpeningScreen() {
     const [loggedIn, setLoggedIn] = useState('');
     const navigation = useNavigation();
-
+    
 
     useEffect(() => {
         const fetchLogin = async () => {

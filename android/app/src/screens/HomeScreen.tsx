@@ -213,7 +213,8 @@ export default function HomeScreen() {
 
   const completeOrder = async (mealTime: string) => {
     try {
-      const currentDate = new Date().toLocaleDateString('en-GB');
+      // const currentDate = new Date().toLocaleDateString('en-GB');
+      const currentDate='01/03/2024'
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
@@ -286,7 +287,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const currentDate = new Date().toLocaleDateString('en-GB');
+      const currentDate='01/03/2024'
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
@@ -392,7 +393,7 @@ export default function HomeScreen() {
               <SelectPicker
                 selectedValue={mealTime}
                 onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-                style={styles.picker}>
+                style={styles.picker} >
                 <SelectPicker.Item label="Breakfast" value="breakfast" />
                 <SelectPicker.Item label="Lunch" value="lunch" />
                 <SelectPicker.Item label="Snacks" value="snacks" />
@@ -407,7 +408,7 @@ export default function HomeScreen() {
                 key={index}
                 selectedValue={foods[index]}
                 onValueChange={itemValue => updateItem(index, itemValue)}
-                style={styles.picker}>
+                style={styles.picker} >
                 <SelectPicker.Item
                   key="disabled-option"
                   label="Select Item"
@@ -427,11 +428,13 @@ export default function HomeScreen() {
                 <TextInput
                   style={styles.cup}
                   placeholder="Enter Custom Item"
+                  placeholderTextColor="gray"
                   onChangeText={value => updateCusItem(index, value)}
                 />
                 <TextInput
                   style={styles.cupr}
                   placeholder="$"
+                  placeholderTextColor="gray"
                   onChangeText={value => updateCusItemPrices(index, value)}
                 />
               </View>
@@ -511,7 +514,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
     marginBottom: 10,
-    color:'gray'
+    color:'#787067'
   },
   container: {
     padding: 20,
@@ -526,7 +529,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color:'gray',
+    color:'#787067',
   },
   picker: {
     width: '100%',
