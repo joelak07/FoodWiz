@@ -10,6 +10,7 @@ export default function History() {
   const [orders, setOrders] = useState([]);
   const [balance, setBalance] = useState(0);
 
+
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -56,7 +57,7 @@ export default function History() {
       <NavBar />
       <View style={styles.container}>
         <View style={styles.balbox}>
-          <Text style={styles.titbal}>Your Balance: {balance}</Text>
+          <Text style={styles.titbal}>Your Balance: Rs {balance}</Text>
         </View>
         <Text style={styles.title}>Your Orders</Text>
         <ScrollView>

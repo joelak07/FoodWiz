@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -35,6 +36,24 @@ export default function HomeScreen() {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    const disableBackButton = () => {
+      // Disable back button on home screen
+      if (navigation.isFocused()) {
+        return true; // Return true to disable back button
+      }
+      return false; // Return false to allow back button
+    };
+
+    // Add event listener for back button press
+    BackHandler.addEventListener('hardwareBackPress', disableBackButton);
+
+    return () => {
+      // Remove event listener when component unmounts
+      BackHandler.removeEventListener('hardwareBackPress', disableBackButton);
+    };
+  }, [navigation]);
 
   const forceReload = () => {
     setReloadKey(prevKey => prevKey + 1);
@@ -386,7 +405,7 @@ export default function HomeScreen() {
                     Today's Balance: {todaybalance}Rs
                   </Text>
                 ) : (
-                  <Text style={styles.bal}>Balance: {balance}Rs</Text>
+                  <Text style={styles.bal}>Balance: Rs {balance}</Text>
                 )}
               </TouchableOpacity>
               <SelectPicker

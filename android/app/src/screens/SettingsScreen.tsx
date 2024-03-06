@@ -107,7 +107,7 @@ export default function SettingsScreen() {
         <View style={styles.container}>
           {!isKeyboardOpen && (
             <View style={styles.namebox}>
-              <Text style={styles.userName}>Hello {name}😊</Text>
+              <Text style={styles.userName}>Hello {name}! </Text>
             </View>
           )}
           <View style={styles.topBox}>
