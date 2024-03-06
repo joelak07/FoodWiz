@@ -122,8 +122,8 @@ export default function SettingsScreen() {
             <TouchableOpacity style={styles.Rbutton} onPress={handleResetBalance}>
               <Text style={styles.buttonText}>Reset Balance</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.Lbutton}>
-              <Text style={styles.buttonText} onPress={handleLogout}>Log Out</Text>
+            <TouchableOpacity style={styles.Lbutton} onPress={handleLogout}>
+              <Text style={styles.buttonText}>Log Out</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.tot}>Mail me at joelabrahamkoshy@gmail.com for any feedback</Text>
