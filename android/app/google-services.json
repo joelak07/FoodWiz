@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "583854363328",
+    "project_id": "foodwizvit",
+    "storage_bucket": "foodwizvit.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:583854363328:android:d2998c8ea1f37e55081325",
+        "android_client_info": {
+          "package_name": "com.foodpark"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCgAFeJKm0L9CCf7sAS_xm73syhQCh8Wo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

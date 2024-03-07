@@ -30,6 +30,7 @@ export default function HomeScreen() {
   const [balance, setBalance] = useState(0);
   const [todaybalance, setTodayBalance] = useState(0);
   const [prices, setPrices] = useState({});
+  
 
   const navigation = useNavigation();
 
@@ -121,12 +122,10 @@ export default function HomeScreen() {
     }
   };
 
-  
   useFocusEffect(
     React.useCallback(() => {
       loadBalance();
-      
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -197,6 +196,21 @@ export default function HomeScreen() {
     }
   }
 
+  const removeItem = (index: number): void => {
+    const newFoods: string[] = [...foods];
+    newFoods.splice(index, 1);
+    setFoods(newFoods);
+  };
+
+  const removeCusItem = (index: number): void => {
+    const newFoods: string[] = [...cusfoods];
+    const newPrices: number[] = [...cusfoodsprices];
+    newFoods.splice(index, 1);
+    newPrices.splice(index, 1);
+    setCusFoods(newFoods);
+    setCusFoodsPrices(newPrices);
+  };
+
   const addItem = (): void => {
     if (foods.length < 5 && cusfoods.length < 4) {
       setFoods([...foods, '']);
@@ -211,7 +225,8 @@ export default function HomeScreen() {
   };
 
   const updateItem = (index: number, value: string): void => {
-    if (value !== '') {
+    console.log('Updating item:', value);
+    if (value !== '' && value !== 'Select') {
       const newFoods: string[] = [...foods];
       newFoods[index] = value;
       setFoods(newFoods);
@@ -236,13 +251,17 @@ export default function HomeScreen() {
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
-
+    
       if (!data[mealTime]) {
         data[mealTime] = [];
       }
-      console.log('Items to save:', foods, cusfoods);
-      data[mealTime] = [...data[mealTime], ...foods, ...cusfoods];
-
+    
+      // Remove empty strings from foods array
+      const filteredFoods = foods.filter(food => food !== "");
+    
+      console.log('Items to save:', filteredFoods, cusfoods);
+      data[mealTime] = [...data[mealTime], ...filteredFoods, ...cusfoods];
+    
       await AsyncStorage.setItem(currentDate, JSON.stringify(data));
       console.log('Items saved successfully');
     } catch (e) {
@@ -260,11 +279,13 @@ export default function HomeScreen() {
       const priceMap = new Map();
 
       foods.forEach(food => {
-        const price = menu[food] || 0;
-        if (priceMap.has(food)) {
-          priceMap.set(food, priceMap.get(food) + price);
-        } else {
-          priceMap.set(food, price);
+        if (food !== '') {
+          const price = menu[food] || 0;
+          if (priceMap.has(food)) {
+            priceMap.set(food, priceMap.get(food) + price);
+          } else {
+            priceMap.set(food, price);
+          }
         }
       });
 
@@ -398,63 +419,76 @@ export default function HomeScreen() {
         <NavBar />
         <View style={styles.main}>
           {!isKeyboardOpen && (
-            <View style={styles.container}>
-              <TouchableOpacity onPress={toggleBalance}>
-                {showTodayBalance ? (
-                  <Text style={styles.bal}>
-                    Today's Balance: {todaybalance}Rs
-                  </Text>
-                ) : (
-                  <Text style={styles.bal}>Balance: Rs {balance}</Text>
-                )}
-              </TouchableOpacity>
-              <SelectPicker
-                selectedValue={mealTime}
-                onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-                style={styles.picker} >
-                <SelectPicker.Item label="Breakfast" value="breakfast" />
-                <SelectPicker.Item label="Lunch" value="lunch" />
-                <SelectPicker.Item label="Snacks" value="snacks" />
-                <SelectPicker.Item label="Dinner" value="dinner" />
-              </SelectPicker>
-            </View>
+             <View style={styles.container}>
+             <TouchableOpacity onPress={toggleBalance}>
+               {showTodayBalance ? (
+                 <Text style={styles.bal}>
+                   Today's Balance: {todaybalance}Rs
+                 </Text>
+               ) : (
+                 <Text style={styles.bal}>Balance: Rs {balance}</Text>
+               )}
+             </TouchableOpacity>
+             <SelectPicker
+               selectedValue={mealTime}
+               onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
+               style={styles.pickerr}>
+               <SelectPicker.Item label="Breakfast" value="breakfast" />
+               <SelectPicker.Item label="Lunch" value="lunch" />
+               <SelectPicker.Item label="Snacks" value="snacks" />
+               <SelectPicker.Item label="Dinner" value="dinner" />
+             </SelectPicker>
+           </View>
           )}
           <View style={styles.items}>
             <Text style={styles.title}>Add Items</Text>
             {foods.map((_, index) => (
-              <SelectPicker
-                key={index}
-                selectedValue={foods[index]}
-                onValueChange={itemValue => updateItem(index, itemValue)}
-                style={styles.picker} >
-                <SelectPicker.Item
-                  key="disabled-option"
-                  label="Select Item"
-                  value=""
-                />
-                {items.map((item, itemIndex) => (
+              <View key={index} style={styles.itemContainer}>
+                <SelectPicker
+                  selectedValue={foods[index]}
+                  onValueChange={itemValue => updateItem(index, itemValue)}
+                  style={styles.picker}>
                   <SelectPicker.Item
-                    key={itemIndex}
-                    label={item}
-                    value={item}
+                    key="disabled-option"
+                    label="Select Item"
+                    value="Select"
                   />
-                ))}
-              </SelectPicker>
+                  {items.map((item, itemIndex) => (
+                    <SelectPicker.Item
+                      key={itemIndex}
+                      label={item}
+                      value={item}
+                    />
+                  ))}
+                </SelectPicker>
+                <TouchableOpacity
+                  onPress={() => removeItem(index)}
+                  style={styles.deleteButton}>
+                  <Text style={styles.deleteButtonText}>X</Text>
+                </TouchableOpacity>
+              </View>
             ))}
             {cusfoods.map((_, index) => (
               <View key={index} style={styles.cus}>
-                <TextInput
-                  style={styles.cup}
-                  placeholder="Enter Custom Item"
-                  placeholderTextColor="gray"
-                  onChangeText={value => updateCusItem(index, value)}
-                />
-                <TextInput
-                  style={styles.cupr}
-                  placeholder="$"
-                  placeholderTextColor="gray"
-                  onChangeText={value => updateCusItemPrices(index, value)}
-                />
+                <View style={styles.cusbox}>
+                  <TextInput
+                    style={styles.cup}
+                    placeholder="Enter Custom Item"
+                    placeholderTextColor="gray"
+                    onChangeText={value => updateCusItem(index, value)}
+                  />
+                  <TextInput
+                    style={styles.cupr}
+                    placeholder="$"
+                    placeholderTextColor="gray"
+                    onChangeText={value => updateCusItemPrices(index, value)}
+                  />
+                </View>
+                <TouchableOpacity
+                  onPress={() => removeCusItem(index)}
+                  style={styles.deleteButton}>
+                  <Text style={styles.deleteButtonText}>X</Text>
+                </TouchableOpacity>
               </View>
             ))}
             {foods.length + cusfoods.length < 5 && (
@@ -484,7 +518,22 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  itemContainer: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  cusbox: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignContent: 'center',
+    alignItems: 'center',
+    width: '98%',
+    paddingRight: 3,
+  },
   cus: {
+    width: '100%',
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -494,12 +543,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   cup: {
-    width: '78%',
+    width: '76%',
     borderColor: 'gray',
     backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
     padding: 10,
+    marginLeft: 7,
+    color:'black',
   },
   cupr: {
     width: '20%',
@@ -508,7 +559,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     padding: 10,
+    paddingRight: 0,
     marginLeft: 10,
+    color:'black',
   },
   adding: {
     display: 'flex',
@@ -521,6 +574,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  deleteButton: {
+    marginLeft: 10,
+    padding: 0,
+    alignContent: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+  },
+  deleteButtonText: {
+    color: 'gray',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
   main: {
     flex: 1,
     backgroundColor: 'antiquewhite',
@@ -532,7 +597,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
     marginBottom: 10,
-    color:'#787067'
+    color: '#787067',
   },
   container: {
     padding: 20,
@@ -540,7 +605,7 @@ const styles = StyleSheet.create({
   },
   items: {
     padding: 20,
-    paddingTop:5,
+    paddingTop: 5,
     alignItems: 'center',
     backgroundColor: 'antiquewhite',
     height: '100%',
@@ -548,10 +613,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color:'#787067',
-    marginBottom:5,
+    color: '#787067',
+    marginBottom: 5,
   },
   picker: {
+    width: '96%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginTop: 10,
+    marginBottom: 10,
+    color: 'black',
+  },
+  pickerr: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -560,7 +636,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 10,
     marginBottom: 10,
-    color:'black'
+    color: 'black',
   },
   addButton: {
     backgroundColor: 'blue',
