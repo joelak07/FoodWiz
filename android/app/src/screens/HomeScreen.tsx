@@ -540,6 +540,7 @@ const styles = StyleSheet.create({
   },
   items: {
     padding: 20,
+    paddingTop:5,
     alignItems: 'center',
     backgroundColor: 'antiquewhite',
     height: '100%',
@@ -548,6 +549,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color:'#787067',
+    marginBottom:5,
   },
   picker: {
     width: '100%',
