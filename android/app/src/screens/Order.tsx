@@ -61,7 +61,7 @@ const Order: React.FC<OrderProps> = props => {
       <View style={styles.ordo}>
         <Text style={styles.date}>{date} </Text>
         <TouchableOpacity style={styles.del} onPress={handleDel}>
-          <FontAwesomeIcon icon={faTrash} />
+          <FontAwesomeIcon icon={faTrash} style={{color:'gray'}}/>
         </TouchableOpacity>
       </View>
 
@@ -77,6 +77,7 @@ const Order: React.FC<OrderProps> = props => {
 const styles = StyleSheet.create({
   del:{
     marginTop:5,
+    color:'gray',
   },
   ordo:{
     display:'flex',
