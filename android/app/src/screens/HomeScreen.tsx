@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Keyboard,
   BackHandler,
+  Alert,
+  Linking,
 } from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +19,8 @@ import {useNavigation} from '@react-navigation/native';
 import {TextInput} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useFocusEffect} from '@react-navigation/native';
+import firestore from '@react-native-firebase/firestore';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function HomeScreen() {
   const [cost, setCost] = useState(0);
@@ -30,7 +34,48 @@ export default function HomeScreen() {
   const [balance, setBalance] = useState(0);
   const [todaybalance, setTodayBalance] = useState(0);
   const [prices, setPrices] = useState({});
-  
+
+  useEffect(() => {
+    const appcheck = async () => {
+      try {
+        const doc = await firestore().collection('main').doc('app').get();
+        const appurl = doc.data().appurl;
+        const ver = doc.data().version;
+        const cver = parseFloat(await AsyncStorage.getItem('version') || '0');
+        console.log("cver "+cver);
+        console.log("ver "+ver);
+
+        if (ver > cver) {
+          Alert.alert(
+            'Update Available',
+            'An update is available. Do you want to update?',
+            [
+              {
+                text: 'No',
+                onPress: () => {
+                  console.log('User clicked No');
+                },
+                style: 'cancel',
+              },
+              {
+                text: 'Yes',
+                onPress: async () => {
+                  console.log('User clicked Yes');
+                  await AsyncStorage.setItem('version', ver.toString());
+                  console.log('settt');
+                  Linking.openURL(appurl);
+                },
+              },
+            ],
+            {cancelable: false},
+          );
+        }
+      } catch (e) {
+        console.error('App Check Error:', e);
+      }
+    };
+    appcheck();
+  }, []);
 
   const navigation = useNavigation();
 
@@ -251,17 +296,17 @@ export default function HomeScreen() {
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
-    
+
       if (!data[mealTime]) {
         data[mealTime] = [];
       }
-    
+
       // Remove empty strings from foods array
-      const filteredFoods = foods.filter(food => food !== "");
-    
+      const filteredFoods = foods.filter(food => food !== '');
+
       console.log('Items to save:', filteredFoods, cusfoods);
       data[mealTime] = [...data[mealTime], ...filteredFoods, ...cusfoods];
-    
+
       await AsyncStorage.setItem(currentDate, JSON.stringify(data));
       console.log('Items saved successfully');
     } catch (e) {
@@ -419,26 +464,26 @@ export default function HomeScreen() {
         <NavBar />
         <View style={styles.main}>
           {!isKeyboardOpen && (
-             <View style={styles.container}>
-             <TouchableOpacity onPress={toggleBalance}>
-               {showTodayBalance ? (
-                 <Text style={styles.bal}>
-                   Today's Balance: {todaybalance}Rs
-                 </Text>
-               ) : (
-                 <Text style={styles.bal}>Balance: Rs {balance}</Text>
-               )}
-             </TouchableOpacity>
-             <SelectPicker
-               selectedValue={mealTime}
-               onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-               style={styles.pickerr}>
-               <SelectPicker.Item label="Breakfast" value="breakfast" />
-               <SelectPicker.Item label="Lunch" value="lunch" />
-               <SelectPicker.Item label="Snacks" value="snacks" />
-               <SelectPicker.Item label="Dinner" value="dinner" />
-             </SelectPicker>
-           </View>
+            <View style={styles.container}>
+              <TouchableOpacity onPress={toggleBalance}>
+                {showTodayBalance ? (
+                  <Text style={styles.bal}>
+                    Today's Balance: {todaybalance}Rs
+                  </Text>
+                ) : (
+                  <Text style={styles.bal}>Balance: Rs {balance}</Text>
+                )}
+              </TouchableOpacity>
+              <SelectPicker
+                selectedValue={mealTime}
+                onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
+                style={styles.pickerr}>
+                <SelectPicker.Item label="Breakfast" value="breakfast" />
+                <SelectPicker.Item label="Lunch" value="lunch" />
+                <SelectPicker.Item label="Snacks" value="snacks" />
+                <SelectPicker.Item label="Dinner" value="dinner" />
+              </SelectPicker>
+            </View>
           )}
           <View style={styles.items}>
             <Text style={styles.title}>Add Items</Text>
@@ -463,8 +508,8 @@ export default function HomeScreen() {
                 </SelectPicker>
                 <TouchableOpacity
                   onPress={() => removeItem(index)}
-                  style={styles.deleteButton}>
-                  <Text style={styles.deleteButtonText}>X</Text>
+                  style={styles.deleteButtonn}>
+                  <FontAwesomeIcon icon={faTrash} style={{color:'gray'}} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -487,7 +532,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => removeCusItem(index)}
                   style={styles.deleteButton}>
-                  <Text style={styles.deleteButtonText}>X</Text>
+                   <FontAwesomeIcon icon={faTrash} style={{color:'gray'}} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -530,7 +575,8 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     alignItems: 'center',
     width: '98%',
-    paddingRight: 3,
+    paddingRight: 2,
+    marginLeft:5,
   },
   cus: {
     width: '100%',
@@ -547,21 +593,18 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     backgroundColor: '#fff',
     borderRadius: 10,
-    borderWidth: 1,
     padding: 10,
     marginLeft: 7,
-    color:'black',
+    color: 'black',
   },
   cupr: {
     width: '20%',
-    borderColor: 'gray',
     backgroundColor: '#fff',
     borderRadius: 10,
-    borderWidth: 1,
     padding: 10,
     paddingRight: 0,
     marginLeft: 10,
-    color:'black',
+    color: 'black',
   },
   adding: {
     display: 'flex',
@@ -576,6 +619,13 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginLeft: 10,
+    padding: 0,
+    alignContent: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+  },
+  deleteButtonn: {
+    marginLeft: 10.7,
     padding: 0,
     alignContent: 'center',
     justifyContent: 'center',
