@@ -12,6 +12,7 @@ export default function SettingsScreen() {
   const [name, setName] = useState('');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
+  
   useEffect(() => {
     const fetchName = async () => {
       try {
@@ -82,6 +83,7 @@ export default function SettingsScreen() {
       if (newBalance > 0) {
         await AsyncStorage.setItem('balance', newBalance.toString());
         console.log('Balance updated successfully:', newBalance);
+        navigation.navigate('Home');
       } else {
         await AsyncStorage.setItem('balance', '0');
         setBalance('');
@@ -91,7 +93,8 @@ export default function SettingsScreen() {
     }
     Alert.alert(
       'Balance Reset',
-      `New balance set to ${newBalance}\n\nKindly, close the app and open it again to see the changes`
+      `New balance set to ${newBalance}`
+
     );
 
     setBalance('');

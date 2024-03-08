@@ -166,60 +166,67 @@ export default function HomeScreen() {
       console.error('Failed to load balance', e);
     }
   };
-
+  
+  const fetchBalance = async () => {
+    try {
+      const storedBalance = await AsyncStorage.getItem('balance');
+      if (storedBalance !== null) {
+        const balanceValue = parseInt(storedBalance);
+        setBalance(balanceValue);
+  
+        const currentDate = new Date();
+        const lastDayOfMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0,
+        ).getDate();
+        const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
+        const todayBalanceValue = balanceValue / daysLeft;
+  
+        const currDate = new Date().toLocaleDateString('en-GB');
+        const checkday = await AsyncStorage.getItem('balday');
+  
+        if (!checkday || parseInt(checkday) !== currentDate.getDate()) {
+          await AsyncStorage.setItem('balday', currentDate.getDate().toString());
+          await AsyncStorage.setItem('tbal', todayBalanceValue.toFixed(2));
+          setTodayBalance(todayBalanceValue);
+        } else {
+          const storedTodayBalance = await AsyncStorage.getItem('tbal');
+          if (parseFloat(storedTodayBalance) > 0) {
+            setTodayBalance(parseFloat(storedTodayBalance));
+          } else {
+            setTodayBalance(0);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+  
+  const toba = async () => {
+    try {
+      const storedtoba = await AsyncStorage.getItem('tbal');
+      if (storedtoba !== null) {
+        setTodayBalance(parseFloat(storedtoba));
+      }
+    } catch (e) {
+      console.error('Failed to load balance', e);
+    }
+  };
+  
+  useEffect(() => {
+    fetchBalance();
+    toba();
+  }, []);
+  
   useFocusEffect(
     React.useCallback(() => {
       loadBalance();
+      toba();
     }, []),
   );
-
-  useEffect(() => {
-    const fetchBalance = async () => {
-      let flag = 0;
-      try {
-        const storedBalance = await AsyncStorage.getItem('balance');
-        console.log('Stored balance:', storedBalance);
-        if (storedBalance !== null) {
-          const balanceValue = parseInt(storedBalance);
-          setBalance(balanceValue);
-          const currentDate = new Date();
-          const lastDayOfMonth = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth() + 1,
-            0,
-          ).getDate();
-          const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
-          const todayBalanceValue = balanceValue / daysLeft;
-          console.log('Today Balance1:', todayBalanceValue.toFixed(2));
-          const currDate = new Date().toLocaleDateString('en-GB');
-          const checkday = await AsyncStorage.getItem('balday');
-          if (!checkday || parseInt(checkday) !== currentDate.getDate()) {
-            await AsyncStorage.setItem(
-              'balday',
-              currentDate.getDate().toString(),
-            );
-            await AsyncStorage.setItem('tbal', todayBalanceValue.toFixed(2));
-            const storedTodayBalance = await AsyncStorage.getItem('tbal');
-            setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
-            console.log('Today Balance2:', storedTodayBalance);
-          } else {
-            const storedTodayBalance = await AsyncStorage.getItem('tbal');
-            if (parseFloat(storedTodayBalance) > 0) {
-              setTodayBalance(parseFloat(storedTodayBalance));
-            } else {
-              setTodayBalance(0);
-            }
-            console.log('Today Balance3:', storedTodayBalance);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching balance:', error);
-      }
-    };
-
-    fetchBalance();
-  }, []);
-
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setMealTime(getDefaultMealTime());
