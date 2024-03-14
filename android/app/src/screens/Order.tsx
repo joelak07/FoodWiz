@@ -39,9 +39,12 @@ const Order: React.FC<OrderProps> = props => {
   }, []);
 
   const handleDel = async () => {
+    console.log("DELDATE",date);
+    console.log("TODAY",new Date().toLocaleDateString('en-GB'));
     if (date == new Date().toLocaleDateString('en-GB')) {
       try {
         const today = await AsyncStorage.getItem('tbal');
+        console.log("TODAYBAL",today);
         const val = parseFloat(today);
         if (!isNaN(val)) {
           await AsyncStorage.setItem('tbal', (val + totalExpense).toString());

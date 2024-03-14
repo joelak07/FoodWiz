@@ -8,6 +8,10 @@ import {
   BackHandler,
   Alert,
   Linking,
+  ScrollView,
+  Button,
+  Platform,
+
 } from 'react-native';
 import {Picker as SelectPicker} from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,7 +24,10 @@ import {TextInput} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useFocusEffect} from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import {faTrash} from '@fortawesome/free-solid-svg-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import {faCalendar} from '@fortawesome/free-solid-svg-icons';
+import {act} from 'react-test-renderer';
 
 export default function HomeScreen() {
   const [cost, setCost] = useState(0);
@@ -34,6 +41,11 @@ export default function HomeScreen() {
   const [balance, setBalance] = useState(0);
   const [todaybalance, setTodayBalance] = useState(0);
   const [prices, setPrices] = useState({});
+  const [mode, setMode] = useState('date');
+  const [show, setShow] = useState(false);
+  const today = new Date();
+  const actd = new Date().toLocaleDateString('en-GB');
+  const [date, setDate] = useState(today);
 
   useEffect(() => {
     const appcheck = async () => {
@@ -41,14 +53,17 @@ export default function HomeScreen() {
         const doc = await firestore().collection('main').doc('app').get();
         const appurl = doc.data().appurl;
         const ver = doc.data().version;
-        const cver = parseFloat(await AsyncStorage.getItem('version') || '0');
-        console.log("cver "+cver);
-        console.log("ver "+ver);
+        const msg=doc.data().message;
+        const cver = parseFloat((await AsyncStorage.getItem('version')) || '0');
+        console.log('cver ' + cver);
+        console.log('ver ' + ver);
+        const docref = firestore().collection('main').doc('app');
+        const docs = await docref.get();
 
         if (ver > cver) {
           Alert.alert(
-            'Update Available',
-            'An update is available. Do you want to update?',
+            'Update Available, Version ' + ver.toString(),
+            'Do you want to update?\n\nUpdate Message: '+msg,
             [
               {
                 text: 'No',
@@ -64,6 +79,11 @@ export default function HomeScreen() {
                   await AsyncStorage.setItem('version', ver.toString());
                   console.log('settt');
                   Linking.openURL(appurl);
+                  if (doc.exists) {
+                    await docref.update({
+                      downloads: firestore.FieldValue.increment(1),
+                    });
+                  }
                 },
               },
             ],
@@ -166,14 +186,14 @@ export default function HomeScreen() {
       console.error('Failed to load balance', e);
     }
   };
-  
+
   const fetchBalance = async () => {
+    console.log('FETCH BAL IS RUNNING');
     try {
       const storedBalance = await AsyncStorage.getItem('balance');
       if (storedBalance !== null) {
         const balanceValue = parseInt(storedBalance);
         setBalance(balanceValue);
-  
         const currentDate = new Date();
         const lastDayOfMonth = new Date(
           currentDate.getFullYear(),
@@ -182,14 +202,16 @@ export default function HomeScreen() {
         ).getDate();
         const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
         const todayBalanceValue = balanceValue / daysLeft;
-  
-        const currDate = new Date().toLocaleDateString('en-GB');
         const checkday = await AsyncStorage.getItem('balday');
-  
         if (!checkday || parseInt(checkday) !== currentDate.getDate()) {
-          await AsyncStorage.setItem('balday', currentDate.getDate().toString());
+          await AsyncStorage.setItem(
+            'balday',
+            currentDate.getDate().toString(),
+          );
           await AsyncStorage.setItem('tbal', todayBalanceValue.toFixed(2));
-          setTodayBalance(todayBalanceValue);
+          console.log('Today Balance:', todayBalanceValue);
+          console.log('Blad', checkday);
+          setTodayBalance(todayBalanceValue.toFixed(2));
         } else {
           const storedTodayBalance = await AsyncStorage.getItem('tbal');
           if (parseFloat(storedTodayBalance) > 0) {
@@ -198,39 +220,24 @@ export default function HomeScreen() {
             setTodayBalance(0);
           }
         }
+        // }
       }
     } catch (error) {
       console.error('Error fetching balance:', error);
     }
   };
-  
-  const toba = async () => {
-    try {
-      const storedtoba = await AsyncStorage.getItem('tbal');
-      if (storedtoba !== null) {
-        setTodayBalance(parseFloat(storedtoba));
-      }
-    } catch (e) {
-      console.error('Failed to load balance', e);
-    }
-  };
-  
-  useEffect(() => {
-    fetchBalance();
-    toba();
-  }, []);
-  
+
   useFocusEffect(
     React.useCallback(() => {
       loadBalance();
-      toba();
+      fetchBalance();
     }, []),
   );
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       setMealTime(getDefaultMealTime());
-    }, 60000); // Update meal time every minute
+    }, 60000); 
 
     return () => clearInterval(interval);
   }, []);
@@ -264,13 +271,14 @@ export default function HomeScreen() {
   };
 
   const addItem = (): void => {
-    if (foods.length < 5 && cusfoods.length < 4) {
+    if (foods.length < 5 && cusfoods.length < 5) {
       setFoods([...foods, '']);
+      console.log('Foods:', foods);
     }
   };
 
   const addCusItem = (): void => {
-    if (foods.length < 5 && cusfoods.length < 4) {
+    if (foods.length < 5 && cusfoods.length < 5) {
       setCusFoods([...cusfoods, '']);
       setCusFoodsPrices([...cusfoodsprices, '']);
     }
@@ -297,9 +305,11 @@ export default function HomeScreen() {
     setCusFoodsPrices(newPrices);
   };
 
+  const aaj = new Date().toLocaleDateString('en-GB');
+
   const completeOrder = async (mealTime: string) => {
     try {
-      const currentDate = new Date().toLocaleDateString('en-GB');
+      const currentDate = formattedDate;
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
@@ -309,7 +319,9 @@ export default function HomeScreen() {
       }
 
       // Remove empty strings from foods array
-      const filteredFoods = foods.filter(food => food !== '');
+      const filteredFoods = foods.filter(
+        food => food !== '' && food !== 'Select',
+      );
 
       console.log('Items to save:', filteredFoods, cusfoods);
       data[mealTime] = [...data[mealTime], ...filteredFoods, ...cusfoods];
@@ -344,6 +356,7 @@ export default function HomeScreen() {
       const prices = Array.from(priceMap, ([food, price]) => ({[food]: price}));
 
       const pricesObject = Object.assign({}, ...prices);
+      console.log('Prices:', pricesObject);
       const combinedObject = {...pricesObject, ...cupa};
       console.log('Prices:', combinedObject);
       setPrices(combinedObject);
@@ -362,15 +375,18 @@ export default function HomeScreen() {
       setBalance(curbal - totalCost);
       console.log('Today Balance:', todaybalance);
       const storemon = todaybalance - totalCost;
-      if (storemon > 0) {
-        setTodayBalance(parseFloat(storemon.toFixed(2)));
-      } else {
-        setTodayBalance(0);
-      }
-      if (storemon > 0) {
-        await AsyncStorage.setItem('tbal', storemon.toFixed(2));
-      } else {
-        await AsyncStorage.setItem('tbal', '0');
+      console.log('aaj ' + aaj);
+      if (aaj == formattedDate) {
+        if (storemon > 0) {
+          setTodayBalance(parseFloat(storemon.toFixed(2)));
+        } else {
+          setTodayBalance(0);
+        }
+        if (storemon > 0) {
+          await AsyncStorage.setItem('tbal', storemon.toFixed(2));
+        } else {
+          await AsyncStorage.setItem('tbal', '0');
+        }
       }
       updateBalance(curbal - totalCost);
     } catch (error) {
@@ -378,7 +394,7 @@ export default function HomeScreen() {
     }
 
     try {
-      const currentDate = new Date().toLocaleDateString('en-GB');
+      const currentDate = formattedDate;
       console.log(currentDate);
       const storedData = await AsyncStorage.getItem(currentDate);
       let data = storedData ? JSON.parse(storedData) : {};
@@ -413,23 +429,33 @@ export default function HomeScreen() {
     }
   };
 
-  const getItemsForCurrentDate = async () => {
-    try {
-      const currentDate = new Date().toLocaleDateString('en-GB');
-      const itemsJson = await AsyncStorage.getItem(currentDate);
-      if (itemsJson !== null) {
-        const disp = JSON.parse(itemsJson);
-        console.log('Items for current date:', disp);
-        return items;
-      } else {
-        console.log('No items found for current date');
-        return [];
-      }
-    } catch (e) {
-      console.error('Failed to get items:', e);
-      return [];
-    }
-  };
+  // useEffect(() => {
+  //   const getItemsForCurrentDate = async () => {
+  //     console.log('GICD IS RUNNING');
+  //     try {
+  //       const itemsJson = await AsyncStorage.getItem(aaj);
+  //       if (itemsJson !== null) {
+  //         const disp = JSON.parse(itemsJson);
+  //         console.log('Items for current date:', disp);
+  //       } else {
+  //         const currentDate = new Date();
+  //         const lastDayOfMonth = new Date(
+  //           currentDate.getFullYear(),
+  //           currentDate.getMonth() + 1,
+  //           0,
+  //         ).getDate();
+  //         const daysLeft = lastDayOfMonth - currentDate.getDate() + 1;
+  //         const todayBalanceValue = balance / daysLeft;
+  //         setTodayBalance(parseFloat(todayBalanceValue.toFixed(2)));
+  //         console.log('hi ' + todayBalanceValue);
+  //       }
+  //     } catch (e) {
+  //       console.error('Failed to get items:', e); // Set items to an empty array
+  //     }
+  //   };
+
+  //   getItemsForCurrentDate(); // Call the function when the component mounts
+  // }, []);
 
   const deleteItemsForCurrentDate = async () => {
     try {
@@ -465,6 +491,32 @@ export default function HomeScreen() {
     fetchItems();
   }, [mealTime]);
 
+  const [formattedDate, setFormattedDate] = useState(actd);
+
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === 'ios');
+    setDate(currentDate);
+    const formattedDate = currentDate.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    setFormattedDate(formattedDate); // Output: Date: dd/mm/yyyy
+  };
+
+  const showMode = currentMode => {
+    setMode(currentMode);
+    setShow(true);
+  };
+
+  useEffect(() => {
+    const coo = () => {
+      console.log('Date:', formattedDate);
+    };
+    coo(); // Call the function to log the date when the component mounts
+  }, []); // Empty dependency array to run the effect only once
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <View style={styles.hs}>
@@ -475,21 +527,42 @@ export default function HomeScreen() {
               <TouchableOpacity onPress={toggleBalance}>
                 {showTodayBalance ? (
                   <Text style={styles.bal}>
-                    Today's Balance: {todaybalance}Rs
+                    Today's Balance: Rs {todaybalance}
                   </Text>
                 ) : (
                   <Text style={styles.bal}>Balance: Rs {balance}</Text>
                 )}
               </TouchableOpacity>
-              <SelectPicker
-                selectedValue={mealTime}
-                onValueChange={(itemValue, itemIndex) => setMealTime(itemValue)}
-                style={styles.pickerr}>
-                <SelectPicker.Item label="Breakfast" value="breakfast" />
-                <SelectPicker.Item label="Lunch" value="lunch" />
-                <SelectPicker.Item label="Snacks" value="snacks" />
-                <SelectPicker.Item label="Dinner" value="dinner" />
-              </SelectPicker>
+              <View style={styles.toppic}>
+                <SelectPicker
+                  selectedValue={mealTime}
+                  onValueChange={(itemValue, itemIndex) =>
+                    setMealTime(itemValue)
+                  }
+                  style={styles.pickerr}>
+                  <SelectPicker.Item label="Breakfast" value="breakfast" />
+                  <SelectPicker.Item label="Lunch" value="lunch" />
+                  <SelectPicker.Item label="Snacks" value="snacks" />
+                  <SelectPicker.Item label="Dinner" value="dinner" />
+                </SelectPicker>
+                <TouchableOpacity
+                  onPress={() => showMode('date')}
+                  style={{flexDirection: 'row', alignItems: 'center'}}>
+                  <FontAwesomeIcon icon={faCalendar} size={20} color="gray" />
+                  <Text>Date</Text>
+                </TouchableOpacity>
+                {show && (
+                  <DateTimePicker
+                    testID="dateTimePicker"
+                    value={date}
+                    mode={mode}
+                    is24Hour={true}
+                    display="default"
+                    onChange={onChange}
+                    maximumDate={today}
+                  />
+                )}
+              </View>
             </View>
           )}
           <View style={styles.items}>
@@ -503,7 +576,7 @@ export default function HomeScreen() {
                   <SelectPicker.Item
                     key="disabled-option"
                     label="Select Item"
-                    value="Select"
+                    value=""
                   />
                   {items.map((item, itemIndex) => (
                     <SelectPicker.Item
@@ -516,7 +589,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => removeItem(index)}
                   style={styles.deleteButtonn}>
-                  <FontAwesomeIcon icon={faTrash} style={{color:'gray'}} />
+                  <FontAwesomeIcon icon={faTrash} style={{color: 'gray'}} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -539,7 +612,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => removeCusItem(index)}
                   style={styles.deleteButton}>
-                   <FontAwesomeIcon icon={faTrash} style={{color:'gray'}} />
+                  <FontAwesomeIcon icon={faTrash} style={{color: 'gray'}} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -553,7 +626,6 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             )}
-
             {!isKeyboardOpen && (
               <TouchableOpacity
                 style={styles.completeButton}
@@ -570,6 +642,10 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  toppic: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
   itemContainer: {
     width: '100%',
     display: 'flex',
@@ -583,7 +659,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '98%',
     paddingRight: 2,
-    marginLeft:5,
+    marginLeft: 5,
   },
   cus: {
     width: '100%',
@@ -592,7 +668,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
     marginTop: 10,
   },
   cup: {
@@ -680,18 +756,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
-    marginTop: 10,
+    marginTop: 5,
     marginBottom: 10,
     color: 'black',
   },
   pickerr: {
-    width: '100%',
+    width: '96%',
     backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 10,
     marginTop: 10,
+    marginRight: 8,
     marginBottom: 10,
     color: 'black',
   },

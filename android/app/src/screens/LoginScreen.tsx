@@ -92,6 +92,15 @@ export default function LoginScreen() {
       } catch (e) {
         console.error('Failed to store Lunch/Dinner items:', e);
       }
+
+      try {
+        const menuItems = require('../DB/menuItems');
+        const jsonMenu = JSON.stringify(menuItems);
+        await AsyncStorage.setItem('menu', jsonMenu);
+        console.log('Menu items stored successfully!');
+      } catch (e) {
+        console.error('Failed to store menu items:', e);
+      }
     };
 
     storeMenu();

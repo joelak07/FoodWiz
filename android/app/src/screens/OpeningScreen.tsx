@@ -37,6 +37,10 @@ export default function OpeningScreen() {
       } catch (e) {
         console.error('Failed to store Lunch/Dinner items:', e);
       }
+
+      
+
+      
     };
 
     storeMenu();
