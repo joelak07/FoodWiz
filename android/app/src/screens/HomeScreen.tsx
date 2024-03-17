@@ -27,7 +27,7 @@ import firestore from '@react-native-firebase/firestore';
 import {faTrash} from '@fortawesome/free-solid-svg-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {faCalendar} from '@fortawesome/free-solid-svg-icons';
-import {act} from 'react-test-renderer';
+import { useTheme } from './ThemeContext';
 
 export default function HomeScreen() {
   const [cost, setCost] = useState(0);
@@ -46,6 +46,7 @@ export default function HomeScreen() {
   const today = new Date();
   const actd = new Date().toLocaleDateString('en-GB');
   const [date, setDate] = useState(today);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const appcheck = async () => {
@@ -54,7 +55,8 @@ export default function HomeScreen() {
         const appurl = doc.data().appurl;
         const ver = doc.data().version;
         const msg=doc.data().message;
-        const cver = parseFloat((await AsyncStorage.getItem('version')) || '0');
+        let ins="2.0";
+        let cver = Math.max(parseFloat(await AsyncStorage.getItem('version')||'0'), parseFloat(ins));
         console.log('cver ' + cver);
         console.log('ver ' + ver);
         const docref = firestore().collection('main').doc('app');
@@ -521,16 +523,16 @@ export default function HomeScreen() {
     <GestureHandlerRootView style={{flex: 1}}>
       <View style={styles.hs}>
         <NavBar />
-        <View style={styles.main}>
+        <View style={[styles.main, isDarkMode && styles.darkmain]}>
           {!isKeyboardOpen && (
             <View style={styles.container}>
               <TouchableOpacity onPress={toggleBalance}>
                 {showTodayBalance ? (
-                  <Text style={styles.bal}>
+                  <Text style={[styles.bal,isDarkMode && styles.darkbal]}>
                     Today's Balance: Rs {todaybalance}
                   </Text>
                 ) : (
-                  <Text style={styles.bal}>Balance: Rs {balance}</Text>
+                  <Text style={[styles.bal,isDarkMode && styles.darkbal]}>Balance: Rs {balance}</Text>
                 )}
               </TouchableOpacity>
               <View style={styles.toppic}>
@@ -548,8 +550,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => showMode('date')}
                   style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <FontAwesomeIcon icon={faCalendar} size={20} color="gray" />
-                  <Text>Date</Text>
+                  <FontAwesomeIcon icon={faCalendar} size={20} color={isDarkMode ? '#dcdcdc' : 'gray'} />
                 </TouchableOpacity>
                 {show && (
                   <DateTimePicker
@@ -566,7 +567,7 @@ export default function HomeScreen() {
             </View>
           )}
           <View style={styles.items}>
-            <Text style={styles.title}>Add Items</Text>
+            <Text style={[styles.title,isDarkMode && styles.darkbal]}>Add Items</Text>
             {foods.map((_, index) => (
               <View key={index} style={styles.itemContainer}>
                 <SelectPicker
@@ -589,7 +590,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => removeItem(index)}
                   style={styles.deleteButtonn}>
-                  <FontAwesomeIcon icon={faTrash} style={{color: 'gray'}} />
+                  <FontAwesomeIcon icon={faTrash} style={{color: isDarkMode ? '#dcdcdc' : 'gray'}} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -612,7 +613,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   onPress={() => removeCusItem(index)}
                   style={styles.deleteButton}>
-                  <FontAwesomeIcon icon={faTrash} style={{color: 'gray'}} />
+                  <FontAwesomeIcon icon={faTrash} style={{color: isDarkMode ? '#dcdcdc' : 'gray'}} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -628,9 +629,9 @@ export default function HomeScreen() {
             )}
             {!isKeyboardOpen && (
               <TouchableOpacity
-                style={styles.completeButton}
+                style={[styles.completeButton,isDarkMode && styles.darkcb]}
                 onPress={() => completeOrder(mealTime)}>
-                <Text style={styles.completeButtonText}>SUBMIT</Text>
+                <Text style={[styles.completeButtonText,isDarkMode && styles.darkcbt]}>SUBMIT</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -725,12 +726,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  darkmain:{
+    flex: 1,
+    backgroundColor: '#333333',
+    width: '100%',
+    height: '100%',
+  },
   bal: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'right',
     marginBottom: 10,
     color: '#787067',
+  },
+  darkbal:{
+    color:'#dcdcdc'
   },
   container: {
     padding: 20,
@@ -740,7 +750,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 5,
     alignItems: 'center',
-    backgroundColor: 'antiquewhite',
     height: '100%',
   },
   title: {
@@ -805,10 +814,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 150,
   },
+  darkcb:{
+    backgroundColor:'#dcdcdc'
+  },
   completeButtonText: {
     color: 'white',
     fontWeight: 'bold',
     fontSize: 20,
     textAlign: 'center',
+  },
+  darkcbt:{
+    color:'#333333'
   },
 });

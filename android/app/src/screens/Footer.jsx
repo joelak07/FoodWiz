@@ -6,9 +6,11 @@ import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus'
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from './ThemeContext';
 
 export default function Footer() {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
     useEffect(() => {
@@ -52,20 +54,19 @@ export default function Footer() {
         navigation.navigate('Stats');
     }
 
-
     return (
-        <View style={styles.footer}>
-            <TouchableOpacity style={styles.button} onPress={handleAddPress}>
-                <FontAwesomeIcon icon={faPlus} />
+        <View style={[styles.footer, isDarkMode && styles.darkFooter]}>
+            <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]} onPress={handleAddPress}>
+                <FontAwesomeIcon icon={faPlus} style={[styles.icon, isDarkMode && styles.whiteIcon]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={handleHistoryPress}>
-                <FontAwesomeIcon icon={faClockRotateLeft} />
+            <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]} onPress={handleHistoryPress}>
+                <FontAwesomeIcon icon={faClockRotateLeft} style={[styles.icon, isDarkMode && styles.whiteIcon]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={handleStatsPress}>
-                <FontAwesomeIcon icon={faChartSimple} />
+            <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]} onPress={handleStatsPress}>
+                <FontAwesomeIcon icon={faChartSimple} style={[styles.icon, isDarkMode && styles.whiteIcon]} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={handleSettingsPress}>
-                <FontAwesomeIcon icon={faGear} />
+            <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]} onPress={handleSettingsPress}>
+                <FontAwesomeIcon icon={faGear} style={[styles.icon, isDarkMode && styles.whiteIcon]} />
             </TouchableOpacity>
         </View>
     );
@@ -81,6 +82,9 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 5,
     },
+    darkFooter: {
+        backgroundColor: '#333333', // Dark mode background color
+    },
     button: {
         width: '23%',
         height: 60,
@@ -88,5 +92,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 5,
+    },
+    darkButton: {
+        backgroundColor: '#1a1a1a', // Dark mode button background color
+    },
+    icon: {
+        color: 'black', // Default icon color
+        fontSize: 24,
+    },
+    whiteIcon: {
+        color: 'white', // Icon color in dark mode
     },
 });

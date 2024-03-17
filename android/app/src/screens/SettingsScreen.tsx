@@ -5,12 +5,30 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import Footer from './Footer';
 import NavBar from './NavBar';
+import { useTheme } from './ThemeContext';
 
 export default function SettingsScreen() {
   const [balance, setBalance] = useState('');
   const navigation = useNavigation();
   const [name, setName] = useState('');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const { isDarkMode } = useTheme();
+  const [version, setVersion] = useState("2.0");
+
+  useEffect(() => {
+    const getVersion = async () => {
+      try {
+        const storedVersion = await AsyncStorage.getItem('version');
+        if (storedVersion !== null) {
+          setVersion(storedVersion);
+        }
+      } catch (error) {
+        console.error('Error fetching version:', error);
+      }
+    };
+
+    getVersion();
+  }, []);
 
   
   useEffect(() => {
@@ -107,13 +125,13 @@ export default function SettingsScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <View style={styles.container}>
+        <View style={[styles.container, isDarkMode && styles.darkContainer]}>
           {!isKeyboardOpen && (
             <View style={styles.namebox}>
               <Text style={styles.userName}>Hello {name}! </Text>
             </View>
           )}
-          <View style={styles.topBox}>
+          <View style={[styles.topBox, isDarkMode && styles.darkContainer]}>
             <TextInput
               style={styles.input}
               placeholder="Enter new balance"
@@ -129,7 +147,8 @@ export default function SettingsScreen() {
               <Text style={styles.buttonText}>Log Out</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.tot}>Mail me at joelabrahamkoshy@gmail.com for any feedback</Text>
+          <Text style={[styles.tot, isDarkMode && styles.darktot]}>Version:{version}</Text>
+          <Text style={[styles.tot, isDarkMode && styles.darktot]}>Mail me at joelabrahamkoshy@gmail.com for any feedback</Text>
         </View>
       </KeyboardAvoidingView>
       <Footer />
@@ -145,11 +164,17 @@ const styles = StyleSheet.create({
     width: '90%',
     textAlign: 'center',
   },
+  darktot:{
+    color:'#dcdcdc'
+  },
   container: {
     flex: 1,
     padding: 10,
     backgroundColor: 'antiquewhite',
     alignItems: 'center',
+  },
+  darkContainer:{
+    backgroundColor:'#333333'
   },
   namebox: {
     backgroundColor: 'white',

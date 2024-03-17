@@ -52,6 +52,7 @@ const breakfastItems = [
     'Pineapple',
     'Grape',
     'Banana',
+    'Lemon Juice',
     'Water Melon',
     'Mash Melon',
     'Lassi',

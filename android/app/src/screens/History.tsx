@@ -5,10 +5,12 @@ import React from 'react';
 import Footer from './Footer';
 import NavBar from './NavBar';
 import Order from './Order';
+import { useTheme } from './ThemeContext';
 
 export default function History() {
   const [orders, setOrders] = useState([]);
   const [balance, setBalance] = useState(0);
+  const { isDarkMode } = useTheme();
 
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function History() {
   return (
     <SafeAreaView style={{flex: 1}}>
       <NavBar />
-      <View style={styles.container}>
+      <View style={[styles.container, isDarkMode && styles.darkContainer]}>
         <View style={styles.balbox}>
           <Text style={styles.titbal}>Your Balance: Rs {balance}</Text>
         </View>
@@ -90,6 +92,9 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingLeft: 20,
     paddingRight: 20,
+  },
+  darkContainer:{
+    backgroundColor:'#333333',
   },
   balbox: {
     marginTop: 10,
